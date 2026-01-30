@@ -1,4 +1,6 @@
 [Bienvenidos a mi README de Programacion 2] ![hippo](https://media3.giphy.com/media/aUovxH8Vf9qDu/giphy.gif)
+
+
 Introducción
 
 Este repositorio reúne el material, prácticas y proyectos oor los que seguramente sudare sangre dolor y unas cuantas desveladas por lo que me va a tocar aguantar Programación II, para el que no sepa que es programacion II es basicamente la herramienta utilizada por el profesor Viktor Kneider para generar traumas y problemas de sueño a sus estudiantes en la universidad, se supone que la materia busca reforzar conocimientos pero mas que todo fuerza al estudiante a no saber que hace con su vida ni para que se inscribio en la materia o si quiera porque entro a ingenieria en comp (😂😂😂😂, rian para no llorar, funciona a veces)
