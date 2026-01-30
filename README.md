@@ -1,4 +1,4 @@
-[Bienvenidos a mi README de Programacion 2] ![hippo](https://tenor.com/es/view/choncc-tft-lol-league-of-legends-gif-24052781)
+[Bienvenidos a mi README de Programacion 2] ![til](https://tenor.com/es/view/choncc-tft-lol-league-of-legends-gif-24052781)
 
 Introducción
 
