@@ -176,23 +176,21 @@ void buscarProducto(Tienda* tienda);
 //4. Listar por proveedor (mostrar todos los productos de un proveedor)
 //0. Cancelar
 
-**Implementación de coincidencia parcial:**
-- Ignorar mayúsculas/minúsculas
-- Buscar substring en el campo correspondiente
-- Mostrar TODOS los resultados que coincidan
+//Implementación de coincidencia parcial:
+//- Ignorar mayúsculas/minúsculas
+//- Buscar substring en el campo correspondiente
+//- Mostrar TODOS los resultados que coincidan
 
-##### 2.2.3 Actualizar Producto
-```cpp
+//2.2.3 Actualizar Producto
 void actualizarProducto(Tienda* tienda);
-```
 
-**Requisitos:**
-1. Buscar producto por ID
-2. Si no existe → mensaje de error y volver
-3. Mostrar datos actuales
-4. Presentar menú de campos editables:
-```
-¿Qué desea editar?
+//Requisitos:
+//1. Buscar producto por ID
+//2. Si no existe → mensaje de error y volver
+//3. Mostrar datos actuales
+//4. Presentar menú de campos editables:
+
+//¿Qué desea editar?
 1. Código
 2. Nombre
 3. Descripción
@@ -201,47 +199,42 @@ void actualizarProducto(Tienda* tienda);
 6. Stock
 7. Guardar cambios
 0. Cancelar sin guardar
-```
 
-5. Permitir editar múltiples campos antes de guardar
-6. Validar cada campo según reglas de creación
-7. Confirmar antes de guardar cambios
+//5. Permitir editar múltiples campos antes de guardar
+//6. Validar cada campo según reglas de creación
+//7. Confirmar antes de guardar cambios
 
-##### 2.2.4 Actualizar Stock Manualmente
-```cpp
+//2.2.4 Actualizar Stock Manualmente
 void actualizarStockProducto(Tienda* tienda);
-```
 
-**Requisitos:**
+
+//Requisitos:
 - Buscar producto por ID
 - Mostrar stock actual
 - Permitir ajuste manual (+/-)
 - Validar que stock final >= 0
 - Confirmar cambio
 
-##### 2.2.5 Listar Productos
-```cpp
+//2.2.5 Listar Productos
 void listarProductos(Tienda* tienda);
-```
 
-**Requisitos:**
-- Mostrar todos los productos en formato tabla
-- Incluir: ID, Código, Nombre, Proveedor, Precio, Stock
-- Mostrar nombre del proveedor (no solo ID)
+//Requisitos:
+//Mostrar todos los productos en formato tabla
+//Incluir: ID, Código, Nombre, Proveedor, Precio, Stock
+//Mostrar nombre del proveedor (no solo ID)
 
-##### 2.2.6 Eliminar Producto
-```cpp
+//2.2.6 Eliminar Producto
+
 void eliminarProducto(Tienda* tienda);
-```
 
-**Requisitos:**
+//Requisitos:
 - Buscar producto por ID
 - Mostrar datos del producto a eliminar
 - Advertir si tiene transacciones asociadas
 - Confirmar eliminación
 - NO eliminar físicamente, solo marcar (o implementar eliminación real moviendo elementos)
 
----
+
 
 #### 2.3 Funciones CRUD - PROVEEDORES
 
