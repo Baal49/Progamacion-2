@@ -51,7 +51,21 @@ struct Producto {
     float precio;              // Precio unitario
     int stock;                 // Cantidad en inventario
     char fechaRegistro[11];    // Formato: YYYY-MM-DD
-if (producto.stock < 0) {
+
+        cout << "Ingrese el código del producto: ";
+        cin.getline(producto.codigo, 20);
+        cout << "ingrese la descripción del producto: ";
+        cin.getline(producto.descripcion, 200);
+        cout << "Ingrese el ID del proveedor: ";
+        cin >> producto.idProveedor;
+        cout << "Ingrese el precio del producto: ";
+        cin >> producto.precio;
+        cout << "Ingrese el stock del producto: ";
+        cin >> producto.stock;
+        cout << "Ingrese la fecha de registro (YYYY-MM-DD): ";
+        cin.getline(producto.fechaRegistro, 11)endl;
+
+    if (producto.stock < 0) {
         cout << "Error: El stock no puede ser negativo." << endl;
         return;
     }
@@ -60,9 +74,7 @@ if (producto.stock < 0) {
         return;
     }
     else cout << "Producto registrado exitosamente." << endl;
-
-};
-
+}
 //1.2 Estructura Proveedor
 struct Proveedor {
     int id;                    // Identificador único (autoincremental)
@@ -285,9 +297,8 @@ void listarProveedores(Tienda* tienda);
 ##### 2.3.5 Eliminar Proveedor
 ```cpp
 void eliminarProveedor(Tienda* tienda);
-```
 
-**Requisitos:**
+//Requisitos:
 - Verificar si tiene productos asociados
 - Si tiene productos → no permitir eliminar (o preguntar si desea reasignar)
 
