@@ -51,6 +51,16 @@ struct Producto {
     float precio;              // Precio unitario
     int stock;                 // Cantidad en inventario
     char fechaRegistro[11];    // Formato: YYYY-MM-DD
+if (producto.stock < 0) {
+        cout << "Error: El stock no puede ser negativo." << endl;
+        return;
+    }
+    else if (producto.precio <= 0) {
+        cout << "Error: El precio debe ser mayor a 0." << endl;
+        return;
+    }
+    else cout << "Producto registrado exitosamente." << endl;
+
 };
 
 //1.2 Estructura Proveedor
@@ -228,45 +238,37 @@ void listarProductos(Tienda* tienda);
 void eliminarProducto(Tienda* tienda);
 
 //Requisitos:
-- Buscar producto por ID
-- Mostrar datos del producto a eliminar
-- Advertir si tiene transacciones asociadas
-- Confirmar eliminación
-- NO eliminar físicamente, solo marcar (o implementar eliminación real moviendo elementos)
+//Buscar producto por ID
+//Mostrar datos del producto a eliminar
+//Advertir si tiene transacciones asociadas
+//Confirmar eliminación
+//NO eliminar físicamente, solo marcar (o implementar eliminación real moviendo elementos)
 
 
 
-#### 2.3 Funciones CRUD - PROVEEDORES
+//2.3 Funciones CRUD - PROVEEDORES
 
-##### 2.3.1 Crear Proveedor
-```cpp
+//2.3.1 Crear Proveedor
 void crearProveedor(Tienda* tienda);
-```
 
-**Requisitos similares a crearProducto:**
-- Permitir cancelación
-- Validar RIF único
-- Validar email (formato básico: contiene @)
-- Asignar ID autoincremental
-- Redimensionar array si necesario
+//Requisitos similares a crearProducto:
+//- Permitir cancelación
+//- Validar RIF único
+//- Validar email (formato básico: contiene @)
+//- Asignar ID autoincremental
+//- Redimensionar array si necesario
 
-##### 2.3.2 Buscar Proveedor
-```cpp
+//2.3.2 Buscar Proveedor
 void buscarProveedor(Tienda* tienda);
-```
 
-**Opciones:**
-```
-1. Buscar por ID
-2. Buscar por nombre (coincidencia parcial)
-3. Buscar por RIF
-0. Cancelar
-```
+//Opciones:
+//1. Buscar por ID
+//2. Buscar por nombre (coincidencia parcial)
+//3. Buscar por RIF
+//0. Cancelar
 
-##### 2.3.3 Actualizar Proveedor
-```cpp
+//2.3.3 Actualizar Proveedor
 void actualizarProveedor(Tienda* tienda);
-```
 
 **Campos editables:**
 - Nombre
