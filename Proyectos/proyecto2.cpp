@@ -1,6 +1,6 @@
 #include <iostream>
 #include <locale>
-
+#include 
 //1.1 Estructura Producto
 
 struct Producto {
@@ -12,6 +12,7 @@ struct Producto {
     float precio;              // Precio unitario
     int stock;                 // Cantidad en inventario
     char fechaRegistro[11];    // Formato: YYYY-MM-DD
+
 };
 
 //1.2 Estructura Proveedor
@@ -81,3 +82,53 @@ struct Tienda {
     int siguienteIdCliente;
     int siguienteIdTransaccion;
 };
+
+void inicializarTienda(Tienda* tienda, const char* nombre, const char* rif); // Inicia la tienda con su capacidad inicial
+
+void liberarTienda(Tienda* tienda); // Libera la memoria asignada para los arrays dinámicos 
+
+for (id <= 0, ) 
+
+
+
+
+
+
+
+switch (opcion) {
+    case 1:
+        registrarCompra(&tienda);
+            cout << "+===========================================+\n";
+            cout << "|   SISTEMA DE GESTION DE INVENTARIO        |\n";
+            cout << "|   Tienda: [Nombre de la Tienda]           |\n";
+            cout << "+===========================================+\n";
+        
+            cout << "Ingrese el código del producto: ";
+            cin.getline(producto.codigo, 20);
+            cout << "ingrese la descripción del producto: ";
+            cin.getline(producto.descripcion, 200);
+            cout << "Ingrese el ID del proveedor: ";
+            cin >> producto.idProveedor;
+            cout << "Ingrese el precio del producto: ";
+            cin >> producto.precio;
+            cout << "Ingrese el stock del producto: ";
+            cin >> producto.stock;
+        break;
+    case 2:
+        registrarVenta(&tienda);
+        break;
+    case 3:
+        buscarTransacciones(&tienda);
+        break;
+    case 4:
+        listarTransacciones(&tienda);
+        break;
+    case 5:
+        cancelarTransaccion(&tienda);
+        break;
+    case 0:
+        std::cout << "Operación cancelada." << std::endl;
+        break;
+    default:
+        std::cout << "Opción no válida. Intente nuevamente." << std::endl;
+}
