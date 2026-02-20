@@ -1,5 +1,7 @@
 #include <iostream>
 #include <locale>
+#include <limits>
+using namespace std;
 //1.1 Estructura Producto
 
 struct Producto {
@@ -8,8 +10,8 @@ struct Producto {
     char nombre[100];          // Nombre del producto
     char descripcion[200];     // Descripción del producto
     int idProveedor;           // ID del proveedor asociado
-    float precio;              // Precio unitario
-    int stock;                 // Cantidad en inventario
+    float precio=0;              // Precio unitario
+    int stock=0;                 // Cantidad en inventario
     char fechaRegistro[11];    // Formato: YYYY-MM-DD
 
 };
@@ -60,20 +62,20 @@ struct Tienda {
     
     // Arrays dinámicos de entidades
     Producto* productos;
-    int numProductos;
-    int capacidadProductos;
+    int numProductos=0;
+    int capacidadProductos=0;
     
     Proveedor* proveedores;
-    int numProveedores;
-    int capacidadProveedores;
+    int numProveedores=0;
+    int capacidadProveedores=0;
     
     Cliente* clientes;
-    int numClientes;
-    int capacidadClientes;
+    int numClientes=0;
+    int capacidadClientes=0;
     
     Transaccion* transacciones;
-    int numTransacciones;
-    int capacidadTransacciones;
+    int numTransacciones=0;
+    int capacidadTransacciones=0;
     
     // Contadores para IDs autoincrementales
     int siguienteIdProducto;
@@ -83,34 +85,35 @@ struct Tienda {
 };
 
 void inicializarTienda(Tienda* tienda){// Inicia la tienda con su capacidad inicial
+    cin.ignore(numeric_limits<streamsize>::max(),'\n');
     cout<<"Ingrese el nombre de la tienda: ";
     cin.getline(tienda->nombre, 100);
     cout<<"Ingrese el RIF de la tienda: ";
     cin.getline(tienda->rif,20);
     cout<<"Ingrese la cantidad maxima de productos que se puede almacenar: ";
     cin>>tienda->capacidadProductos;
-    while((tienda->numProductos<=0)&&(tienda->numProductos>tienda->capacidadProductos)){
+    while((tienda->numProductos<=0)||(tienda->numProductos>tienda->capacidadProductos)){
         cout<<"Ingrese la cantidad de Productos que desea registrar: ";
         cin>>tienda->numProductos;
     }
     tienda->productos =new Producto[tienda->numProductos];
     cout<<"Ingrese la cantidad maxima de provedores que se puede almacenar: ";
     cin>>tienda->capacidadProveedores;
-    while((tienda->numProveedores<=0)&&(tienda->numProveedores>tienda->capacidadProveedores)){
+    while((tienda->numProveedores<=0)||(tienda->numProveedores>tienda->capacidadProveedores)){
         cout<<"Ingrese la cantidad de Provedores que desea registrar: ";
         cin>>tienda->numProveedores;
     }
-    tienda->proveedores =new Proveedor[tienda->numProvedores];
+    tienda->proveedores =new Proveedor[tienda->numProveedores];
     cout<<"Ingrese la cantidad maxima de clientes que se puede almacenar: ";
     cin>>tienda->capacidadClientes;
-    while((tienda->numClientes<=0)&&(tienda->numClientes>tienda->capacidadClientes)){
+    while((tienda->numClientes<=0)||(tienda->numClientes>tienda->capacidadClientes)){
         cout<<"Ingrese la cantidad de Clientes que desea registrar: ";
         cin>>tienda->numClientes;
     }
     tienda->clientes=new Cliente[tienda->numClientes];
     cout<<"Ingrese la cantidad maxima de Transacciones que se puede almacenar: ";
     cin>>tienda->capacidadTransacciones;
-    while((tienda->numTransacciones<=0)&&(tienda->numTransacciones>tienda->capacidadTransacciones)){
+    while((tienda->numTransacciones<=0)||(tienda->numTransacciones>tienda->capacidadTransacciones)){
         cout<<"Ingrese la cantidad de Transacciones que desea registrar: ";
         cin>>tienda->numTransacciones;
     }
@@ -120,28 +123,88 @@ void inicializarTienda(Tienda* tienda){// Inicia la tienda con su capacidad inic
 } 
 
 void liberarTienda(Tienda* tienda){// Libera la memoria asignada para los arrays dinámicos
-
+    delete[] tienda->productos;
+    delete[] tienda->proveedores;
+    delete[] tienda->clientes;
+    delete[] tienda->transacciones;
+    delete tienda;
+    tienda = nullptr;
 }  
-
-
-
-
-
-
-
+void Crearproductos(Tienda* tienda){// Crea uno o varios productos de la tienda
+    int x=1;
+    if(tienda->productos!=nullptr){
+        int *cantprodcreados=new int;
+        while(*cantprodcreados<=0&&*cantprodcreados>tienda->numProductos){
+            cout<<"Ingrese la cantidad de Productos que desea registrar: ";
+            cin>>*cantprodcreados;
+        }
+        for(int i=0;i<*cantprodcreados;i++){
+            cout<<"Ingrese el id del producto: ";
+            cin>>tienda->productos[i].id;
+            cin.ignore(numeric_limits<streamsize>::max(),'\n');
+            cout<<"Ingrese el nombre del producto: ";
+            cin.getline(tienda->productos[i].nombre,100);
+            cout<<"ingrese la descripcion del producto: ";
+            cin.getline(tienda->productos[i].descripcion,200);
+            while(x==1){
+                cout<<"ingrese el id del provedor del producto: ";
+                cin>>tienda->productos[i].idProveedor;
+                for(int j=0;j<tienda->numProveedores;j++){
+                    if(tienda->proveedores[j].id==tienda->productos[i].idProveedor){
+                        x=0;
+                    }
+                }
+                if(x==1){
+                    cout<<"El id del proveedor no existe, intentelo nuevamente."<<endl;
+                }
+            }
+            while(tienda->productos[i].precio<=0){
+                cout<<"ingrese el precio del producto: ";
+                cin>>tienda->productos[i].precio;
+                if(tienda->productos[i].precio<=0){
+                    cout<<"El precio debe ser mayor a 0, por favor intentelo mas tarde."<<endl;
+                }
+            }
+            while(tienda->productos[i].stock<=0){
+                cout<<"ingrese el stock del producto: ";
+                cin>>tienda->productos[i].stock;
+                if(tienda->productos[i].stock<=0){
+                    cout<<"El stock debe ser mayor a 0, por favor intentelo mas tarde."<<endl;
+                }
+            }
+            cout<<"Ingrese la fecha del registro del producto con formato YYYY-MM-DD: ";
+            cin.getline(tienda->productos[i].fechaRegistro,11);
+        }
+    }
+}
 int main(){
-switch (opcion) {
+    Tienda tienda ;
+    int opcion=0;
+    do{
+        cout << "+===========================================+"<<endl;
+        cout << "║   SISTEMA DE GESTIÓN DE INVENTARIO       ║"<<endl;
+        cout << "║   Tienda: "<<tienda.nombre<<"            ║"<<endl;
+        cout << "+===========================================+"<<endl;
+        cout << "1. Crear Tienda" << endl;
+        cout << "2. Menu Productos" << endl;
+        cout << "3. Menu Venta" << endl;
+        cout << "4. Menu Transacciones" << endl;
+        cout << "5. Menu Transacciones" << endl;
+        cin >> opcion;
+        switch (opcion) {
     case 1:
+        inicializarTienda(&tienda);
+        break;
         
     case 2:
-        registrarCompra(&tienda);
+        /*registrarCompra(&tienda);
             cout << "+===========================================+\n";
             cout << "|   SISTEMA DE GESTION DE INVENTARIO        |\n";
             cout << "|   Tienda: [Nombre de la Tienda]           |\n";
             cout << "+===========================================+\n";
         
             cout << "Ingrese el código del producto: ";
-            cin.getline(producto.codigo, 20);
+            cin.getline(tienda->productos.codigo, 20);
             cout << "ingrese la descripción del producto: ";
             cin.getline(producto.descripcion, 200);
             cout << "Ingrese el ID del proveedor: ";
@@ -149,25 +212,26 @@ switch (opcion) {
             cout << "Ingrese el precio del producto: ";
             cin >> producto.precio;
             cout << "Ingrese el stock del producto: ";
-            cin >> producto.stock;
+            cin >> producto.stock;*/
         break;
     case 3:
-        registrarVenta(&tienda);
+        //registrarVenta(&tienda);
         break;
     case 4:
-        buscarTransacciones(&tienda);
+        //buscarTransacciones(&tienda);
         break;
     case 5:
-        listarTransacciones(&tienda);
+        //listarTransacciones(&tienda);
         break;
     case 6:
-        cancelarTransaccion(&tienda);
+       // cancelarTransaccion(&tienda);
         break;
     case 0:
-        std::cout << "Operación cancelada." << std::endl;
+        cout << "Operación cancelada." << endl;
         break;
     default:
-        std::cout << "Opción no válida. Intente nuevamente." << std::endl;
+        cout << "Opción no válida. Intente nuevamente." << endl;
 }
+    }while(opcion!=0);
 return 0;
 }
