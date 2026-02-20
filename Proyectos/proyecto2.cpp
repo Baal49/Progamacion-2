@@ -1,6 +1,5 @@
 #include <iostream>
 #include <locale>
-#include 
 //1.1 Estructura Producto
 
 struct Producto {
@@ -83,20 +82,58 @@ struct Tienda {
     int siguienteIdTransaccion;
 };
 
-void inicializarTienda(Tienda* tienda, const char* nombre, const char* rif); // Inicia la tienda con su capacidad inicial
+void inicializarTienda(Tienda* tienda){// Inicia la tienda con su capacidad inicial
+    cout<<"Ingrese el nombre de la tienda: ";
+    cin.getline(tienda->nombre, 100);
+    cout<<"Ingrese el RIF de la tienda: ";
+    cin.getline(tienda->rif,20);
+    cout<<"Ingrese la cantidad maxima de productos que se puede almacenar: ";
+    cin>>tienda->capacidadProductos;
+    while((tienda->numProductos<=0)&&(tienda->numProductos>tienda->capacidadProductos)){
+        cout<<"Ingrese la cantidad de Productos que desea registrar: ";
+        cin>>tienda->numProductos;
+    }
+    tienda->productos =new Producto[tienda->numProductos];
+    cout<<"Ingrese la cantidad maxima de provedores que se puede almacenar: ";
+    cin>>tienda->capacidadProveedores;
+    while((tienda->numProveedores<=0)&&(tienda->numProveedores>tienda->capacidadProveedores)){
+        cout<<"Ingrese la cantidad de Provedores que desea registrar: ";
+        cin>>tienda->numProveedores;
+    }
+    tienda->proveedores =new Proveedor[tienda->numProvedores];
+    cout<<"Ingrese la cantidad maxima de clientes que se puede almacenar: ";
+    cin>>tienda->capacidadClientes;
+    while((tienda->numClientes<=0)&&(tienda->numClientes>tienda->capacidadClientes)){
+        cout<<"Ingrese la cantidad de Clientes que desea registrar: ";
+        cin>>tienda->numClientes;
+    }
+    tienda->clientes=new Cliente[tienda->numClientes];
+    cout<<"Ingrese la cantidad maxima de Transacciones que se puede almacenar: ";
+    cin>>tienda->capacidadTransacciones;
+    while((tienda->numTransacciones<=0)&&(tienda->numTransacciones>tienda->capacidadTransacciones)){
+        cout<<"Ingrese la cantidad de Transacciones que desea registrar: ";
+        cin>>tienda->numTransacciones;
+    }
+    tienda->transacciones=new Transaccion[tienda->numTransacciones];
 
-void liberarTienda(Tienda* tienda); // Libera la memoria asignada para los arrays dinámicos 
 
-for (id <= 0, ) 
+} 
 
+void liberarTienda(Tienda* tienda){// Libera la memoria asignada para los arrays dinámicos
 
-
-
-
+}  
 
 
+
+
+
+
+
+int main(){
 switch (opcion) {
     case 1:
+        
+    case 2:
         registrarCompra(&tienda);
             cout << "+===========================================+\n";
             cout << "|   SISTEMA DE GESTION DE INVENTARIO        |\n";
@@ -114,16 +151,16 @@ switch (opcion) {
             cout << "Ingrese el stock del producto: ";
             cin >> producto.stock;
         break;
-    case 2:
+    case 3:
         registrarVenta(&tienda);
         break;
-    case 3:
+    case 4:
         buscarTransacciones(&tienda);
         break;
-    case 4:
+    case 5:
         listarTransacciones(&tienda);
         break;
-    case 5:
+    case 6:
         cancelarTransaccion(&tienda);
         break;
     case 0:
@@ -131,4 +168,6 @@ switch (opcion) {
         break;
     default:
         std::cout << "Opción no válida. Intente nuevamente." << std::endl;
+}
+return 0;
 }
