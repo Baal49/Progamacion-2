@@ -123,7 +123,64 @@ void inicializarTienda(Tienda* tienda){// Inicia la tienda con su capacidad inic
 } 
 
 void liberarTienda(Tienda* tienda){// Libera la memoria asignada para los arrays dinámicos
-    delete[] tienda->productos;
+// Busca transacciones por ID de producto usando punteros dinámicos
+void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
+    if(tienda==nullptr){
+        cout<<"Tienda no inicializada."<<endl;
+        return;
+    }
+    if(tienda->transacciones==nullptr || tienda->numTransacciones<=0){
+        cout<<"No hay transacciones registradas."<<endl;
+        return;
+    }
+
+    // Reservamos un arreglo dinámico de punteros a Transaccion
+    Transaccion** matches = new Transaccion*[tienda->numTransacciones];
+    int encontrados = 0;
+
+    for(int i=0;i<tienda->numTransacciones;i++){
+        if(tienda->transacciones[i].idProducto == idProducto){
+            matches[encontrados++] = &tienda->transacciones[i];
+        }
+    }
+
+    if(encontrados==0){
+        cout<<"No se encontraron transacciones para el producto con ID "<<idProducto<<"."<<endl;
+        delete[] matches;
+        return;
+    }
+
+    cout<<"Se encontraron "<<encontrados<<" transaccion(es) para el producto "<<idProducto<<":\n";
+    for(int i=0;i<encontrados;i++){
+        Transaccion* t = matches[i];
+        cout<<"ID: "<<t->id<<" | Tipo: "<<t->tipo<<" | Cantidad: "<<t->cantidad
+            <<" | Precio unitario: "<<t->precioUnitario<<" | Total: "<<t->total
+            <<" | Fecha: "<<t->fecha<<"\n";
+    }
+
+    // Liberamos el arreglo dinámico de punteros
+    delete[] matches;
+}
+
+void listarTransacciones(Tienda* tienda){
+    if(tienda==nullptr){
+        cout<<"Tienda no inicializada."<<endl;
+        return;
+    }
+    if(tienda->transacciones==nullptr || tienda->numTransacciones<=0){
+        cout<<"No hay transacciones registradas."<<endl;
+        return;
+    }  
+
+    cout<<"Listado de Transacciones:\n";
+    for(int i=0;i<tienda->numTransacciones;i++){
+        Transaccion* t = &tienda->transacciones[i];
+        cout<<"ID: "<<t->id<<" | Tipo: "<<t->tipo<<" | Producto ID: "<<t->idProducto<<" | Relacionado ID: "<<t->idRelacionado
+            <<" | Cantidad: "<<t->cantidad<<" | Precio unitario: "<<t->precioUnitario
+            <<" | Total: "<<t->total<<" | Fecha: "<<t->fecha<<"\n";
+
+
+int main(){
     delete[] tienda->proveedores;
     delete[] tienda->clientes;
     delete[] tienda->transacciones;
@@ -177,8 +234,15 @@ void Crearproductos(Tienda* tienda){// Crea uno o varios productos de la tienda
         }
     }
 }
+
+
+
+
+
+
+
 int main(){
-    Tienda tienda ;
+    *tienda tienda ;
     int opcion=0;
     do{
         cout << "+===========================================+"<<endl;
@@ -200,7 +264,7 @@ int main(){
         *registrarCompra(&tienda);
             cout << "+===========================================+\n";
             cout << "|   SISTEMA DE GESTION DE INVENTARIO        |\n";
-            cout << "|   Tienda: [Nombre de la Tienda]           |\n";
+            cout << "|   Tienda: " << tienda->nombre << "           |\n";
             cout << "+===========================================+\n";
         
             cout << "Ingrese el código del producto: ";
@@ -219,7 +283,7 @@ int main(){
             *registrarVenta(&tienda);
             cout << "+===========================================+\n";
             cout << "|   SISTEMA DE GESTION DE INVENTARIO        |\n";
-            cout << "|   Tienda: [Nombre de la Tienda]           |\n";
+            cout << "|   Tienda: " << tienda->nombre << "           |\n";
             cout << "+===========================================+\n";
             cout << "Ingrese el código del producto: ";
             cin.getline(tienda->productos.codigo, 20);
@@ -230,10 +294,10 @@ int main(){
     case 4:
         //buscarTransacciones(&tienda);
 
-            *buscarTransacciones(&tienda);
+            new *buscarTransacciones(&tienda);
              cout << "+===========================================+\n"; 
             cout << "|   SISTEMA DE GESTION DE INVENTARIO        |\n";
-            cout << "|   Tienda: [Nombre de la Tienda]           |\n";
+            cout << "|   Tienda: " << tienda->nombre << "           |\n";
             cout << "+===========================================+\n";
             cout << "Ingrese el ID del producto para buscar transacciones: ";
             cin >> producto.id;
@@ -249,7 +313,7 @@ int main(){
             cout << "|   Tienda: [Nombre de la Tienda]           |\n";
             cout << "+===========================================+\n";
             listarTransacciones(&tienda);
-            
+
 
         break;
     case 6:
