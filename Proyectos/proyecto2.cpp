@@ -197,7 +197,7 @@ int main(){
         break;
         
     case 2:
-        /*registrarCompra(&tienda);
+        *registrarCompra(&tienda);
             cout << "+===========================================+\n";
             cout << "|   SISTEMA DE GESTION DE INVENTARIO        |\n";
             cout << "|   Tienda: [Nombre de la Tienda]           |\n";
@@ -212,16 +212,45 @@ int main(){
             cout << "Ingrese el precio del producto: ";
             cin >> producto.precio;
             cout << "Ingrese el stock del producto: ";
-            cin >> producto.stock;*/
+            cin >> producto.stock;
         break;
     case 3:
         //registrarVenta(&tienda);
+            *registrarVenta(&tienda);
+            cout << "+===========================================+\n";
+            cout << "|   SISTEMA DE GESTION DE INVENTARIO        |\n";
+            cout << "|   Tienda: [Nombre de la Tienda]           |\n";
+            cout << "+===========================================+\n";
+            cout << "Ingrese el código del producto: ";
+            cin.getline(tienda->productos.codigo, 20);
+            cout << "Ingrese el ID del cliente: ";
+            cin >> producto.idProveedor;
+
         break;
     case 4:
         //buscarTransacciones(&tienda);
+
+            *buscarTransacciones(&tienda);
+             cout << "+===========================================+\n"; 
+            cout << "|   SISTEMA DE GESTION DE INVENTARIO        |\n";
+            cout << "|   Tienda: [Nombre de la Tienda]           |\n";
+            cout << "+===========================================+\n";
+            cout << "Ingrese el ID del producto para buscar transacciones: ";
+            cin >> producto.id;
+            buscarTransaccionesPorProducto(&tienda, producto.id);
+
         break;
     case 5:
         //listarTransacciones(&tienda);
+
+            *listarTransacciones(&tienda);
+             cout << "+===========================================+\n";
+            cout << "|   SISTEMA DE GESTION DE INVENTARIO        |\n";
+            cout << "|   Tienda: [Nombre de la Tienda]           |\n";
+            cout << "+===========================================+\n";
+            listarTransacciones(&tienda);
+            
+
         break;
     case 6:
        // cancelarTransaccion(&tienda);
