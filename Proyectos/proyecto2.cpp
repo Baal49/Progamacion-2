@@ -310,11 +310,11 @@ void buscarProducto(Tienda* tienda){
                 // Editar nombre
                 cout<<"Ingrese el nuevo nombre del producto: ";
                 cin >> resp;
-                if (resp.empty()){ cout<<"El nombre no puede estar vacío. Edición cancelada."<<endl; break; }
-                if (resp.length() >= sizeof(tienda->productos[idBuscado-1].nombre)){ cout<<"El nombre es demasiado largo. Edición cancelada."<<endl; break; }
+                while (resp.empty()){ cout<<"El nombre no puede estar vacío. Edición cancelada."<<endl; cin >> resp; }
+                while (resp.length() >= sizeof(tienda->productos[idBuscado-1].nombre)){ cout<<"El nombre es demasiado largo. Coloque otro nombre."<<endl; cin >> resp; }
                 // Asignar nuevo nombre al producto
                 if (tienda->productos[idBuscado-1].nombre != nullptr) delete[] tienda->productos[idBuscado-1].nombre;
-                if (respt=="CANCELAR" || resp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+                if (resp=="CANCELAR" || resp=="0"){ cout<<"Edición cancelada."<<endl; break; }
                 
                 tienda->productos[idBuscado-1].nombre = resp;
                 cout<<"Nombre actualizado."<<endl;
