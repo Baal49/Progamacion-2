@@ -14,6 +14,7 @@ struct Producto {
     float precio=0;            // Precio unitario
     int stock=0;               // Cantidad en inventario
     char fechaRegistro[11];    // Formato: YYYY-MM-DD
+    char fechavencimiento[11]; //Formato: YYYY-MM-DD (opcional)
 };
 
 struct Proveedor {
@@ -220,7 +221,16 @@ void Crearproductos(Tienda* tienda){
         if(!getline(cin,input)) return;
         if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
         strncpy(temp.fechaRegistro, input.c_str(), sizeof(temp.fechaRegistro)-1);
+        //Fecha de Vencimiento (opcional)
+        cout<<"El producto tiene fecha de vencimiento? (S/N): ";
+        if(!getline(cin,input)) return;
+        if(input=="S"||input=="s"||input=="Si"||input=="SI"||input=="si"){
+            cout<<"Introduzca la fecha de vencimiento (YYYY-MM-DD) o 'CANCELAR' para cancelar: ";
+            if(!getline(cin,input)) return;
+            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+            strncpy(temp.fechavencimiento, input.c_str(),sizeof(temp.fechavencimiento)-1);
 
+        }
         // Asignar ID autoincremental
         temp.id = tienda->siguienteIdProducto++;
 
