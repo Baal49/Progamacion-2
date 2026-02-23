@@ -254,6 +254,102 @@ void Crearproductos(Tienda* tienda){
     }
 }
 
+void buscarProducto(Tienda* tienda){
+    // Implementar búsqueda por ID, nombre, código o proveedor
+    // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
+    cout <<"ingrese el ID del producto a buscar: ";
+    string input;
+    if(!getline(cin,input)) return;
+    int idBuscado = 0;
+    try{ idBuscado = stoi(input); }
+    catch(...){ cout<<"ID invalido."<<endl; return; }
+    for(int i=0;i<tienda->cantidadProductos;i++){
+        if(tienda->productos[i].id == idBuscado){
+            Producto& p = tienda->productos[i];
+            cout<<"Producto encontrado: ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<"\n";
+            return;
+        }
+    }
+    cout<<"Producto no encontrado."<<endl;
+
+
+
+
+    cout<<"Desea editar el producto? (S/N): ";
+    string resp;
+    if(!getline(cin,resp)) return;
+    if (resp=="N" || resp=="n" || resp=="No" || resp=="NO" || resp=="no"){
+        cout<<"Edición cancelada."<<endl;
+        
+        if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
+        editarProducto(tienda, idBuscado);
+
+        cout <<"Que desea editar del producto?"<<endl;
+        cout <<"1. Código"<<endl;
+        cout <<"2. Nombre"<<endl;
+        cout <<"3. Descripción"<<endl;
+        cout <<"4. Proveedor"<<endl;
+        cout <<"5. Precio"<<endl;
+        cout <<"6. Stock"<<endl;
+        cout <<"7. Guardar cambios"<<endl;
+        cout <<"0. Cancelar sin guardar"<<endl;
+        cin>>resp;
+        switch(resp){
+            case "1":
+                // Editar código (validar único)
+                cout <<"Ingrese el nuevo código del producto: ";
+                cin >> resp;
+                   if(codigoDuplicado(tienda, resp)) { cout<<"Codigo ya existe. Edición cancelada."<<endl; break; }
+                   if (resp.empty()){ cout<<"El código no puede estar vacío. Edición cancelada."<<endl; break; }
+                   if (resp=="CANCELAR" || resp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+                // Asignar nuevo código al producto
+                tienda->productos[idBuscado-1].codigo = resp;
+                cout<<"Código actualizado."<<endl;
+                break;
+            case "2":
+                // Editar nombre
+                cout<<"Ingrese el nuevo nombre del producto: ";
+                cin >> resp;
+                if (resp.empty()){ cout<<"El nombre no puede estar vacío. Edición cancelada."<<endl; break; }
+                if (resp.length() >= sizeof(tienda->productos[idBuscado-1].nombre)){ cout<<"El nombre es demasiado largo. Edición cancelada."<<endl; break; }
+                // Asignar nuevo nombre al producto
+                if (tienda->productos[idBuscado-1].nombre != nullptr) delete[] tienda->productos[idBuscado-1].nombre;
+                if (respt=="CANCELAR" || resp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+                
+                tienda->productos[idBuscado-1].nombre = resp;
+                cout<<"Nombre actualizado."<<endl;
+
+                break;
+            case "3":
+                // Editar descripción
+                break;
+            case "4":
+                // Editar proveedor (validar existencia)
+                break;
+            case "5":
+                // Editar precio (validar > 0)
+                break;
+            case "6":
+                // Editar stock (validar > 0)
+                break;
+            case "7":
+                // Guardar cambios (confirmar antes)
+                break;
+            case "0":
+                cout<<"Edición cancelada sin guardar."<<endl;
+                break;
+            default:
+                cout<<"Opción inválida."<<endl;
+        }
+    }
+    
+    }
+
+
+}
+
+
+
 int main(){
     Tienda tienda;
     inicializarTienda(&tienda);
