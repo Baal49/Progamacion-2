@@ -299,8 +299,10 @@ void editarProducto(Tienda* tienda, int idProducto){
     //Funcion para editar algun aspecto del producto
     int respuesta=0;
     int idBuscado=0;
+    bool encontrado=false;
     int resp;
     Producto* temp;
+    temp->id=idProducto;
     string respp;
     for(int i=0;i<tienda->cantidadProductos;i++){
         if(tienda->productos[i].id==idProducto){
@@ -308,6 +310,10 @@ void editarProducto(Tienda* tienda, int idProducto){
             break;
         }
     }
+    if(!encontrado){
+        cout<<"Producto no encontrado."<<endl;
+        return;
+    } 
     do{
     cout <<"Que desea editar del producto?"<<endl;
         cout <<"1. Código"<<endl;
@@ -316,7 +322,9 @@ void editarProducto(Tienda* tienda, int idProducto){
         cout <<"4. Proveedor"<<endl;
         cout <<"5. Precio"<<endl;
         cout <<"6. Stock"<<endl;
-        cout <<"7. Guardar cambios"<<endl;
+        cout <<"7. Fecha de Registro"<<endl;
+        cout <<"8. Fecha de vencimiento"<<endl;
+        cout <<"9. Guardar cambios"<<endl;
         cout <<"0. Cancelar sin guardar"<<endl;
         cin>>respuesta;
         switch(respuesta){
@@ -393,9 +401,31 @@ void editarProducto(Tienda* tienda, int idProducto){
                 cout<<"Stock actualizado."<<endl;
                 break;
             case 7:
+                // Editar fecha de registro
+                cout<<"ingrese la nueva fecha de registro del producto con Formato(YYYY-MM-DD): ";
+                getline(cin,respp);
+                while(respp.empty()){cout<<"La fecha de registro no puede estar vacia."<<endl;getline(cin,respp);}
+                while(respp.length()>sizeof(tienda->productos[idBuscado].fechaRegistro)){cout<<"La fecha de registro es demasiado larga."<<endl; getline(cin,respp);}
+                if(tienda->productos[idBuscado].fechaRegistro!=nullptr) delete[] tienda->productos[idBuscado].fechaRegistro;
+                if (respp=="CANCELAR" || respp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+                strcpy(temp->fechaRegistro,respp.c_str());
+                cout<<"Fecha de registro actualizada."<<endl;
+                break;
+            case 8:
+                // Editar fecha de vencimiento
+                cout<<"ingrese la nueva fecha de vencimiento del producto con Formato(YYYY-MM-DD): ";
+                getline(cin,respp);
+                while(respp.empty()){cout<<"La fecha de vencimiento no puede estar vacia."<<endl;getline(cin,respp);}
+                while(respp.length()>sizeof(tienda->productos[idBuscado].fechavencimiento)){cout<<"La fecha de vencimiento es demasiado larga."<<endl; getline(cin,respp);}
+                if(tienda->productos[idBuscado].fechavencimiento!=nullptr) delete[] tienda->productos[idBuscado].fechavencimiento;
+                if (respp=="CANCELAR" || respp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+                strcpy(temp->fechavencimiento,respp.c_str());
+                cout<<"Fecha de vencimiento actualizada."<<endl;
+                break;
+            case 9:
                 // Guardar cambios (confirmar antes)
-                cout<<"Producto antes: ID: "<<tienda->productos[idBuscado].id<<" | Codigo: "<<tienda->productos[idBuscado].codigo<<" | Nombre: "<<tienda->productos[idBuscado].nombre<<" | Precio: "<<tienda->productos[idBuscado].precio<<" | Stock: "<<tienda->productos[idBuscado].stock<<" | Proveedor ID: "<<tienda->productos[idBuscado].idProveedor<<endl;
-                cout<<"Producto Despues: ID: "<<tienda->productos[idBuscado].id<<" | Codigo: "<<temp->codigo<<" | Nombre: "<<temp->nombre<<" | Precio: "<<temp->precio<<" | Stock: "<<temp->stock<<" | Proveedor ID: "<<temp->idProveedor<<endl;
+                cout<<"Producto antes: ID: "<<tienda->productos[idBuscado].id<<" | Codigo: "<<tienda->productos[idBuscado].codigo<<" | Nombre: "<<tienda->productos[idBuscado].nombre<<" | Precio: "<<tienda->productos[idBuscado].precio<<" | Stock: "<<tienda->productos[idBuscado].stock<<" | Proveedor ID: "<<tienda->productos[idBuscado].idProveedor<<" | Fecha de Registro: "<<tienda->productos[idBuscado].fechaRegistro<<" | Fecha de Vencimiento: "<<tienda->productos[idBuscado].fechavencimiento<<endl;
+                cout<<"Producto Despues: ID: "<<tienda->productos[idBuscado].id<<" | Codigo: "<<temp->codigo<<" | Nombre: "<<temp->nombre<<" | Precio: "<<temp->precio<<" | Stock: "<<temp->stock<<" | Proveedor ID: "<<temp->idProveedor<<" | Fecha de Registro: "<<temp->fechaRegistro<<" | Fecha de Vencimiento: "<<temp->fechavencimiento<<endl;
                 cout<<"¿Desea guardar los cambios realizados al producto? (S/N): ";
                 tienda->productos[idBuscado]=*temp;
                 delete temp;
