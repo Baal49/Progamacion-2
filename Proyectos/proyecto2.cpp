@@ -70,7 +70,7 @@ void inicializarTienda(Tienda* tienda){
     while(cin>>capP && capP<=0){ cout<<"Debe ser mayor que 0. Intente nuevamente: "; }
     tienda->capacidadProductos = capP;
     tienda->productos = new Producto[tienda->capacidadProductos];
-    tienda->cantidadProductos = 0;
+    tienda->cantidadProductos = capP;
     tienda->siguienteIdProducto = 1;
 
     // Proveedores (mínimo 1 para permitir crear productos que referencien proveedores)
@@ -79,7 +79,7 @@ void inicializarTienda(Tienda* tienda){
     while(cin>>capProv && capProv<=0){ cout<<"Debe ser mayor que 0. Intente nuevamente: "; }
     tienda->capacidadProveedores = capProv;
     tienda->proveedores = new Proveedor[tienda->capacidadProveedores];
-    tienda->cantidadProveedores = 0;
+    tienda->cantidadProveedores = capProv;
 
     // Transacciones
     int capT = 0;
@@ -87,7 +87,7 @@ void inicializarTienda(Tienda* tienda){
     while(cin>>capT && capT<=0){ cout<<"Debe ser mayor que 0. Intente nuevamente: "; }
     tienda->capacidadTransacciones = capT;
     tienda->transacciones = new Transaccion[tienda->capacidadTransacciones];
-    tienda->cantidadTransacciones = 0;
+    tienda->cantidadTransacciones = capT;
 
     cin.ignore(numeric_limits<streamsize>::max(),'\n');
 }
@@ -151,7 +151,7 @@ void Crearproductos(Tienda* tienda){
         if(cantidad>0) break;
         cout<<"La cantidad debe ser mayor a 0. Intente nuevamente: ";
     }
-
+*tienda->productos[2].codigo=2;
     for(int n=0;n<cantidad;n++){
         Producto temp{};
 
@@ -257,6 +257,7 @@ void Crearproductos(Tienda* tienda){
 void buscarProducto(Tienda* tienda){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
+    bool encontrado =0;
     cout <<"ingrese el ID del producto a buscar: ";
     string input;
     if(!getline(cin,input)) return;
@@ -267,24 +268,48 @@ void buscarProducto(Tienda* tienda){
         if(tienda->productos[i].id == idBuscado){
             Producto& p = tienda->productos[i];
             cout<<"Producto encontrado: ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<"\n";
+            encontrado=1;
             return;
         }
     }
-    cout<<"Producto no encontrado."<<endl;
+    if(!encontrado){
+        cout<<"Producto no encontrado."<<endl;
+    }
+    
 
 
 
 
     cout<<"Desea editar el producto? (S/N): ";
     string resp;
+    
     if(!getline(cin,resp)) return;
     if (resp=="N" || resp=="n" || resp=="No" || resp=="NO" || resp=="no"){
         cout<<"Edición cancelada."<<endl;
-        
-        if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
+    }
+    else if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
         editarProducto(tienda, idBuscado);
+    }
+    
+    }
 
-        cout <<"Que desea editar del producto?"<<endl;
+
+
+void editarProducto(Tienda* tienda, int idProducto){
+    //Funcion para editar algun aspecto del producto
+    int respuesta=0;
+    int idBuscado=0;
+    int resp;
+    Producto* temp;
+    string respp;
+    for(int i=0;i<tienda->cantidadProductos;i++){
+        if(tienda->productos[i].id==idProducto){
+            idBuscado=i;
+            break;
+        }
+    }
+    do{
+    cout <<"Que desea editar del producto?"<<endl;
         cout <<"1. Código"<<endl;
         cout <<"2. Nombre"<<endl;
         cout <<"3. Descripción"<<endl;
@@ -293,61 +318,97 @@ void buscarProducto(Tienda* tienda){
         cout <<"6. Stock"<<endl;
         cout <<"7. Guardar cambios"<<endl;
         cout <<"0. Cancelar sin guardar"<<endl;
-        cin>>resp;
-        switch(resp){
-            case "1":
+        cin>>respuesta;
+        switch(respuesta){
+            case 1:
                 // Editar código (validar único)
-                cout <<"Ingrese el nuevo código del producto: ";
-                cin >> resp;
-                   if(codigoDuplicado(tienda, resp)) { cout<<"Codigo ya existe. Edición cancelada."<<endl; break; }
-                   if (resp.empty()){ cout<<"El código no puede estar vacío. Edición cancelada."<<endl; break; }
-                   if (resp=="CANCELAR" || resp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+                cout <<"Ingrese el nuevo código del producto o 0 para cancelar: ";
+                getline(cin,respp);
+                   while(codigoDuplicado(tienda, respp)) { cout<<"Codigo ya existe Intentelo nuevamente."<<endl; getline(cin,respp); }
+                   if (respp.empty()){ cout<<"El código no puede estar vacío. Edición cancelada."<<endl; break; }
+                   if ( respp=="0"||respp=="CANCELAR"){ cout<<"Edición cancelada."<<endl; break; }
                 // Asignar nuevo código al producto
-                tienda->productos[idBuscado-1].codigo = resp;
-                cout<<"Código actualizado."<<endl;
+                strcpy(temp->codigo,respp.c_str());
                 break;
-            case "2":
-                // Editar nombre
-                cout<<"Ingrese el nuevo nombre del producto: ";
-                cin >> resp;
-                while (resp.empty()){ cout<<"El nombre no puede estar vacío. Edición cancelada."<<endl; cin >> resp; }
-                while (resp.length() >= sizeof(tienda->productos[idBuscado-1].nombre)){ cout<<"El nombre es demasiado largo. Coloque otro nombre."<<endl; cin >> resp; }
-                // Asignar nuevo nombre al producto
-                if (tienda->productos[idBuscado-1].nombre != nullptr) delete[] tienda->productos[idBuscado-1].nombre;
-                if (resp=="CANCELAR" || resp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+            case 2:
+                // Editar nombre.
                 
-                tienda->productos[idBuscado-1].nombre = resp;
-                cout<<"Nombre actualizado."<<endl;
-
+                cout<<"Ingrese el nuevo nombre del producto: ";
+                getline(cin,respp);
+                while (respp.empty()){ cout<<"El nombre no puede estar vacío."<<endl; getline(cin,respp); }
+                while (respp.length() >= sizeof(tienda->productos[idBuscado].nombre)){ cout<<"El nombre es demasiado largo. Coloque otro nombre."<<endl; getline(cin,respp); }
+                // Asignar nuevo nombre al producto
+                if (tienda->productos[idBuscado].nombre != nullptr) delete[] tienda->productos[idBuscado].nombre;
+                if (respp=="CANCELAR" || respp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+                strcpy(temp->nombre,respp.c_str());
+                respp.clear();
                 break;
-            case "3":
+            case 3:
                 // Editar descripción
+                cout<<"ingrese la nueva descripcion del producto: ";
+                getline(cin,respp);
+                while(respp.empty()){cout<<"La descripcion no puede estar vacia."<<endl;getline(cin,respp);}
+                while(respp.length()>sizeof(tienda->productos[idBuscado].descripcion)){cout<<"La descripcion es demasiado larga."<<endl; getline(cin,respp);}
+                if(tienda->productos[idBuscado].descripcion!=nullptr) delete[] tienda->productos[idBuscado].descripcion;
+                if (respp=="CANCELAR" || respp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+                strcpy(temp->descripcion,respp.c_str());
+                cout<<"Descripción actualizada."<<endl;
                 break;
-            case "4":
+            case 4:
                 // Editar proveedor (validar existencia)
+                    cout<<"Ingrese el nuevo ID del proveedor del producto: ";
+                    cin>>resp;
+                    bool provvaalido=false;
+                    while(!provvaalido){
+                    for(int i=0;i<tienda->cantidadProveedores;i++){
+                        if(tienda->proveedores[i].id==resp){
+                            provvaalido=true;
+                            break;
+                        }
+                    }
+                    if(!provvaalido){
+                        cout<<"el ID del provedor no existe. Intentelo nuevamente."<<endl;
+                        break;
+                    }
+                }
+                temp->idProveedor=resp;
+                cout<<"Proveedor actualizado."<<endl;
                 break;
-            case "5":
+            case 5:
                 // Editar precio (validar > 0)
+                    cout<<"Ingrese el nuevo precio del producto: ";
+                    float precio;
+                    cin>>precio;
+                    while(precio<=0){cout<<"El precio debe ser mayor a 0 Intentelo nuevamente."<<endl; cin>>precio;}
+                    temp->precio=precio;
+                    cout<<"Precio actualizado."<<endl;
                 break;
-            case "6":
+            case 6:
                 // Editar stock (validar > 0)
+                cout<<"Ingrese el nuevo stock del producto: ";
+                float stock;
+                cin>>stock;
+                while(stock<=0){cout<<"El stock debe ser mayor a 0 Intentelo nuevamente."<<endl; cin>>stock;}
+                temp->stock=stock;
+                cout<<"Stock actualizado."<<endl;
                 break;
-            case "7":
+            case 7:
                 // Guardar cambios (confirmar antes)
+                cout<<"Producto antes: ID: "<<tienda->productos[idBuscado].id<<" | Codigo: "<<tienda->productos[idBuscado].codigo<<" | Nombre: "<<tienda->productos[idBuscado].nombre<<" | Precio: "<<tienda->productos[idBuscado].precio<<" | Stock: "<<tienda->productos[idBuscado].stock<<" | Proveedor ID: "<<tienda->productos[idBuscado].idProveedor<<endl;
+                cout<<"Producto Despues: ID: "<<tienda->productos[idBuscado].id<<" | Codigo: "<<temp->codigo<<" | Nombre: "<<temp->nombre<<" | Precio: "<<temp->precio<<" | Stock: "<<temp->stock<<" | Proveedor ID: "<<temp->idProveedor<<endl;
+                cout<<"¿Desea guardar los cambios realizados al producto? (S/N): ";
+                tienda->productos[idBuscado]=*temp;
+                delete temp;
+                cout<<"Cambios guardados."<<endl;
                 break;
-            case "0":
+            case 0:
                 cout<<"Edición cancelada sin guardar."<<endl;
                 break;
             default:
                 cout<<"Opción inválida."<<endl;
         }
-    }
-    
-    }
-
-
+    }while(respuesta!=0&&respuesta!=7);
 }
-
 
 
 int main(){
