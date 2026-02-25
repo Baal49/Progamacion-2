@@ -130,6 +130,15 @@ void redimensionarProductos(Tienda* tienda){
     tienda->productos = nuevo;
     tienda->capacidadProductos = nuevaCap;
 }
+void redimensionarProveedor(Tienda* tienda){
+    int nuevaCap = (tienda->cantidadProveedores>0) ? tienda->capacidadProveedores*2 : 1;
+    Proveedor* nuevo = new Proveedor[nuevaCap];
+    // copiar existentes
+    for(int i=0;i<tienda->cantidadProveedores;i++) nuevo[i] = tienda->proveedores[i];
+    delete[] tienda->proveedores;
+    tienda->proveedores = nuevo;
+    tienda->capacidadProveedores = nuevaCap;
+}
 
 bool codigoDuplicado(Tienda* tienda, const string& codigo){
     for(int i=0;i<tienda->cantidadProductos;i++){
@@ -298,19 +307,29 @@ void Crearproveedor(Tienda* tienda){
         if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
             // si el arreglo está lleno, redimensionar duplicando capacidad
             if(tienda->cantidadProveedores >= tienda->capacidadProveedores){
-                redimensionarProductos(tienda);
+                redimensionarProveedor(tienda);
                 cout<<"Arreglo de proveedores redimensionado a capacidad "<<tienda->capacidadProveedores<<"."<<endl;
             }
-            tienda->proveedores[tienda->cantidadProveedores++] = *temp;
-            cout<<"Producto guardado."<<endl;
+            tienda->proveedores[tienda->cantidadProveedores++] = temp;
+            cout<<"Proveedor guardado."<<endl;
         } else {
-            cout<<"Producto descartado por el usuario."<<endl;
+            cout<<"Proveedor descartado por el usuario."<<endl;
         }
     }
 }
 void buscarProducto(Tienda* tienda){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
+    int opcion=0;
+    while(opcion!=1&&opcion!=2){
+        cout<<"Quiere hacer la busqueda por 1.ID o por 2.Nombre";
+        cin>>opcion;
+        if(opcion!=1&&opcion!=2){
+            cout<<"esa opcion es invalida intentelo de nuevo.";
+        }
+    }
+    
+    if(opcion==1){
     bool encontrado =0;
     cout <<"ingrese el ID del producto a buscar: ";
     string input;
@@ -343,6 +362,50 @@ void buscarProducto(Tienda* tienda){
     }
     else if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
         editarProducto(tienda, idBuscado);
+    }
+    }
+    else if(opcion==2){
+        string nombre;
+        cout<<"introduce el nombre del producto: ";
+        getline(cin,nombre);
+        int* idencontrados=new int[tienda->cantidadProductos];
+        int x=0;
+        for(int i=0;i<tienda->cantidadProductos;i++){
+            string str(tienda->productos->nombre);
+            if(str.find(nombre)){
+                idencontrados[x]=tienda->productos[i].id;
+                x++;
+            }
+        }
+        if(x==0){
+            cout<<"no se encontro ningun producto con ese nombre"<<endl;
+        }
+        else{
+            int opcion2;
+            cout<<"se encontraron "<<x<<" coincidencias :"<<endl;
+            for(int i=0;i<x;i++){
+                for(int j=0;j<tienda->cantidadProductos;j++){
+                    if(tienda->productos[j].id==idencontrados[i]){
+                        cout<<"Producto "<<i+1<<": id:"<<tienda->productos[j].id<<" nombre: "<<tienda->productos[j].nombre<<" codigo: "<<tienda->productos[j].codigo<<" nombre: "<<tienda->productos[j].precio<<endl;
+                    }
+                }   
+            }
+            do{
+            cout<<"Introduzca el numero del producto para seleccionarlo";
+            cin>>opcion2;
+            opcion2--;
+            }while(opcion2<0||opcion2>x);
+            cout<<"Desea editar el producto? (S/N): ";
+            string resp;
+    
+            if(!getline(cin,resp)) return;
+            if (resp=="N" || resp=="n" || resp=="No" || resp=="NO" || resp=="no"){
+                cout<<"Edición cancelada."<<endl;
+            }
+            else if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
+                editarProducto(tienda, idencontrados[opcion2]);
+            }
+        }
     }
     
     }
