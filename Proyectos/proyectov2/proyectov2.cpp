@@ -301,7 +301,7 @@ void Crearproveedor(Tienda* tienda){
                 redimensionarProductos(tienda);
                 cout<<"Arreglo de proveedores redimensionado a capacidad "<<tienda->capacidadProveedores<<"."<<endl;
             }
-            tienda->productos[tienda->cantidadProveedores++] = *temp;
+            tienda->proveedores[tienda->cantidadProveedores++] = *temp;
             cout<<"Producto guardado."<<endl;
         } else {
             cout<<"Producto descartado por el usuario."<<endl;
