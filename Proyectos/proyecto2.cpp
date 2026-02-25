@@ -254,6 +254,64 @@ void Crearproductos(Tienda* tienda){
     }
 }
 
+void Crearproveedor(Tienda* tienda){
+    if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
+    string input;
+    int cantidad = 0;
+    cout<<"Ingrese la cantidad de productos a crear (o 'CANCELAR'/'0' para cancelar): ";
+    while(true){
+        if(!getline(cin, input)) return;
+        if(input=="CANCELAR" || input=="0") { cout<<"Creación cancelada."<<endl; return; }
+        try{ cantidad = stoi(input); }
+        catch(...){ cout<<"Entrada invalida. Ingrese un numero: "; continue; }
+        if(cantidad>0) break;
+        cout<<"La cantidad debe ser mayor a 0. Intente nuevamente: ";
+    }
+    for(int n=0;n<cantidad;n++){
+        Proveedor temp{};
+
+        // Codigo (único)
+        while(true){
+            cout<<"Ingrese el Id del proveedor (o 'CANCELAR' para cancelar): ";
+            if(!getline(cin, input)) return;
+            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+            if(input.empty()){ cout<<"El codigo no puede estar vacío."<<endl; continue; }
+            if(codigoDuplicado(tienda, input)) { cout<<"Codigo ya existe. Ingrese otro."<<endl; continue; }
+            temp.id=stoi(input);
+            break;
+        }
+
+        // Nombre
+        cout<<"Ingrese el nombre del proveedor (o 'CANCELAR' para cancelar): ";
+        if(!getline(cin,input)) return;
+        if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+        strncpy(temp.nombre, input.c_str(), sizeof(temp.nombre)-1);
+
+        
+        // Asignar ID autoincremental
+        temp.id = tienda->siguienteIdProveedor++;
+
+        // Confirmación
+        cout<<"\nResumen del proveedor:"<<endl;
+        cout<<"ID: "<<temp.id<<" | Nombre: "<<temp.nombre<<endl;
+        cout<<"¿Desea guardar este proveedor? (S/N): ";
+        string resp;
+        if(!getline(cin,resp)) return;
+        if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
+            // si el arreglo está lleno, redimensionar duplicando capacidad
+            if(tienda->cantidadProveedores >= tienda->capacidadProveedores){
+                redimensionarProductos(tienda);
+                cout<<"Arreglo de proveedores redimensionado a capacidad "<<tienda->capacidadProveedores<<"."<<endl;
+            }
+            tienda->productos[tienda->cantidadProveedores++] = *temp;
+            cout<<"Producto guardado."<<endl;
+        } else {
+            cout<<"Producto descartado por el usuario."<<endl;
+        }
+    }
+}
+
+
 void buscarProducto(Tienda* tienda){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
