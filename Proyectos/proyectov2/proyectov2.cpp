@@ -522,6 +522,7 @@ void editarProveedor(Tienda* tienda, int idProveedor){
         cout <<"1. id"<<endl;
         cout <<"2. Nombre"<<endl;
         cout <<"3. Guardar cambios"<<endl;
+        cout <<"4. Eliminar proveedor"<<endl;
         cout <<"0. Cancelar sin guardar"<<endl;
         cin>>respuesta;
         switch(respuesta){
@@ -563,6 +564,14 @@ void editarProveedor(Tienda* tienda, int idProveedor){
                 cout<<"Opción inválida."<<endl;
         }
     }while(respuesta!=0&&respuesta!=7);
+
+    case 4:
+    cout<<"¿Está seguro que desea eliminar este proveedor? Esto también eliminará todos los productos asociados a este proveedor. (S/N): ";
+    cin >> resp;
+    if(resp=='S'||resp=='s'){
+        eliminarProveedor(tienda, idProveedor);
+    }
+     
 }
 void editarProducto(Tienda* tienda, int idProducto){
     //Funcion para editar algun aspecto del producto
@@ -593,7 +602,8 @@ void editarProducto(Tienda* tienda, int idProducto){
         cout <<"6. Stock"<<endl;
         cout <<"7. Fecha de Registro"<<endl;
         cout <<"8. Fecha de vencimiento"<<endl;
-        cout <<"9. Guardar cambios"<<endl;
+        cout <<"9. Eliminar producto"<<endl;
+        cout <<"10. Guardar cambios"<<endl;
         cout <<"0. Cancelar sin guardar"<<endl;
         cin>>respuesta;
         switch(respuesta){
@@ -691,7 +701,22 @@ void editarProducto(Tienda* tienda, int idProducto){
                 strcpy(temp->fechavencimiento,respp.c_str());
                 cout<<"Fecha de vencimiento actualizada."<<endl;
                 break;
+            
             case 9:
+                // Eliminar producto (confirmar antes)
+                cout<<"¿Está seguro que desea eliminar este producto? (S/N): ";
+                cin >> resp;
+                if(resp=='S'||resp=='s'){
+                    eliminarProducto(tienda, idProducto);
+                    cout<<"Producto eliminado."<<endl;
+                    return;
+                }
+                else{
+                    cout<<"Eliminación cancelada."<<endl;
+                }
+                break;
+            
+            case 10:
                 // Guardar cambios (confirmar antes)
                 cout<<"Producto antes: ID: "<<tienda->productos[idBuscado].id<<" | Codigo: "<<tienda->productos[idBuscado].codigo<<" | Nombre: "<<tienda->productos[idBuscado].nombre<<" | Precio: "<<tienda->productos[idBuscado].precio<<" | Stock: "<<tienda->productos[idBuscado].stock<<" | Proveedor ID: "<<tienda->productos[idBuscado].idProveedor<<" | Fecha de Registro: "<<tienda->productos[idBuscado].fechaRegistro<<" | Fecha de Vencimiento: "<<tienda->productos[idBuscado].fechavencimiento<<endl;
                 cout<<"Producto Despues: ID: "<<tienda->productos[idBuscado].id<<" | Codigo: "<<temp->codigo<<" | Nombre: "<<temp->nombre<<" | Precio: "<<temp->precio<<" | Stock: "<<temp->stock<<" | Proveedor ID: "<<temp->idProveedor<<" | Fecha de Registro: "<<temp->fechaRegistro<<" | Fecha de Vencimiento: "<<temp->fechavencimiento<<endl;
