@@ -796,6 +796,145 @@ int main(){
     strcpy(tienda.nombre, "Farmacia pipo");
     inicializarTienda(&tienda);
 
+    cout <<"╔═══════════════════════════════════════════╗"<<endl;
+    cout <<"║   SISTEMA DE GESTIÓN DE INVENTARIO        ║"<<endl;
+    cout <<"║   Tienda: [Nombre de la Tienda]           ║"<<endl;
+    cout <<"╚═══════════════════════════════════════════╝"<<endl;
+    
+    cout <<"1. Gestión de Productos" <<endl;
+     cout <<"2. Gestión de Proveedores" <<endl;
+     cout <<"3. Gestión de Clientes" <<endl;
+     cout <<"4. Gestión de Transacciones" <<endl;
+     cout <<"5. Salir"<<endl;
+        int opcion;
+    do{
+        cout<<"Seleccione una opción: ";
+        cin>>opcion;
+        switch(opcion){
+            case 1:
+                cout <<"╔═══════════════════════════════════════════╗"<<endl;
+                cout <<"║        GESTIÓN DE PRODUCTOS              ║"<<endl;
+                cout <<"╚═══════════════════════════════════════════╝"<<endl;
+
+                cout <<"1. Registrar nuevo producto"<<endl;
+                cout <<"2. Buscar producto"<<endl;
+                cout <<"3. Actualizar producto"<<endl;
+                cout <<"4. Actualizar stock manualmente"<<endl;
+                cout <<"5. Listar todos los productos"<<endl;
+                cout <<"6. Eliminar producto"<<endl;
+                 cout <<"0. Volver al menú principal"<<endl;
+                 cin>>opcion;
+                 switch(opcion){
+                    case 1:
+                        Crearproductos(&tienda);
+                        break;
+                    case 2:
+                        buscarProducto(&tienda);
+                        break;
+                    case 3:
+                        editarProducto(&tienda);
+                        break;
+                    case 4:
+                        actualizarStock(&tienda);
+                        break;
+                    case 5:
+                        listarProductos(&tienda);
+                        break;
+                    case 6:
+                        eliminarProducto(&tienda, 1); // Example ID for deletion
+                        break;
+                    case 0:
+                        cout<<"Volviendo al menú principal..."<<endl;
+                        break;
+                    default:
+                        cout<<"Opción inválida. Intente nuevamente."<<endl;
+                 }
+                break;
+            case 2:
+                cout <<"╔═══════════════════════════════════════════╗"<<endl;
+                cout <<"║       GESTIÓN DE PROVEEDORES             ║"<<endl;
+                cout <<"╚═══════════════════════════════════════════╝"<<endl;
+
+                cout <<"1. Registrar proveedor"<<endl;
+                cout <<"2. Buscar proveedor"<<endl;
+                cout <<"3. Actualizar proveedor"<<endl;
+                cout <<"4. Listar proveedores"<<endl;
+                cout <<"5. Eliminar proveedor"<<endl;
+                cout <<"0. Volver al menú principal"<<endl;
+                cout<<"Seleccione una opción: ";
+                cin>>opcion;
+                
+                switch(opcion){
+                    case 1:
+                        Crearproveedor(&tienda);
+                        break;
+                    case 2:
+                        buscarProveedor(&tienda);
+                        break;
+                    case 3:
+                        editarProveedor(&tienda);
+                        break;
+                    case 4:
+                        listarProveedores(&tienda);
+                        break;
+                    case 5:
+                        eliminarProveedor(&tienda, 1); // Example ID for deletion
+                        break;
+                    case 0:
+                        cout<<"Volviendo al menú principal..."<<endl;
+                        break;
+                    default:
+                        cout<<"Opción inválida. Intente nuevamente."<<endl;
+                }
+                break;
+            case 3:
+                cout <<"╔═══════════════════════════════════════════╗"<<endl;
+                cout <<"║         GESTIÓN DE CLIENTES              ║"<<endl;
+                cout <<"╚═══════════════════════════════════════════╝"<<endl;
+
+                cout <<"1. Registrar cliente"<<endl;
+                cout <<"2. Buscar cliente"<<endl;
+                cout <<"3. Actualizar cliente"<<endl;
+                cout <<"4. Listar clientes"<<endl;
+                cout <<"5. Eliminar cliente"<<endl;
+                cout <<"0. Volver al menú principal"<<endl;
+                cout<<"Seleccione una opción: ";
+                cin>>opcion;
+                
+                switch(opcion){
+                    case 1:
+                        Crearclientes(&tienda);
+                        break;
+                    case 2:
+                        buscarCliente(&tienda);
+                        break;
+                    case 3:
+                        editarCliente(&tienda);
+                        break;
+                    case 4:
+                        listarClientes(&tienda);
+                        break;
+                    case 5:
+                        eliminarCliente(&tienda, 1); // Example ID for deletion
+                        break;
+                    case 0:
+                        cout<<"Volviendo al menú principal..."<<endl;
+                        break;
+                    default:
+                        cout<<"Opción inválida. Intente nuevamente."<<endl;
+                }
+                break;
+            case 4:
+                //CrearTransacciones(&tienda);
+                break;
+            case 5:
+                cout<<"Saliendo del programa..."<<endl;
+                break;
+            default:
+                cout<<"Opción inválida. Intente nuevamente."<<endl;
+        }
+
+
     cout<<"\n--- CREAR PRODUCTOS ---\n";
     Crearproductos(&tienda);
     buscarProducto(&tienda);
