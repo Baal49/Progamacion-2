@@ -557,6 +557,12 @@ void editarProveedor(Tienda* tienda, int idProveedor){
                 delete temp;
                 cout<<"Cambios guardados."<<endl;
                 break;
+            case 4:
+                cout<<"¿Está seguro que desea eliminar este proveedor? Esto también eliminará todos los productos asociados a este proveedor. (S/N): ";
+                cin >> resp;
+                if(resp=='S'||resp=='s'){
+                    eliminarProveedor(tienda, idProveedor);
+                }
             case 0:
                 cout<<"Edición cancelada sin guardar."<<endl;
                 break;
@@ -565,12 +571,7 @@ void editarProveedor(Tienda* tienda, int idProveedor){
         }
     }while(respuesta!=0&&respuesta!=7);
 
-    case 4:
-    cout<<"¿Está seguro que desea eliminar este proveedor? Esto también eliminará todos los productos asociados a este proveedor. (S/N): ";
-    cin >> resp;
-    if(resp=='S'||resp=='s'){
-        eliminarProveedor(tienda, idProveedor);
-    }
+    
      
 }
 void editarProducto(Tienda* tienda, int idProducto){
@@ -733,8 +734,63 @@ void editarProducto(Tienda* tienda, int idProducto){
         }
     }while(respuesta!=0&&respuesta!=7);
 }
-
-
+void eliminarProveedor(Tienda* tienda,int id){
+    if(tienda!=nullptr){
+        int posproveedor=-1;
+        for(int i;i<tienda->cantidadProveedores;i++){
+            if(id==tienda->proveedores[i].id){
+                posproveedor=i;
+                break;
+            }
+        }
+        if(posproveedor==-1){
+            cout<<"no existe ese producto"<<endl;
+            return;
+        }
+        else{
+            for(int i=posproveedor+1;i<tienda->cantidadProveedores;i++){
+                tienda->proveedores[i-1]=tienda->proveedores[i];
+            }
+            tienda->proveedores[tienda->cantidadProveedores].id=0;
+            strcpy(tienda->proveedores[tienda->cantidadProveedores].nombre,"");
+        }
+    }
+    else{
+        cout<<"La tienda no ha sido creada"<<endl;
+    }
+}
+void eliminarProducto(Tienda* tienda,int id){
+    if(tienda!=nullptr){
+        int posproduct=-1;
+        for(int i;i<tienda->cantidadProductos;i++){
+            if(id==tienda->productos[i].id){
+                posproduct=i;
+                break;
+            }
+        }
+        if(posproduct==-1){
+            cout<<"no existe ese producto"<<endl;
+            return;
+        }
+        else{
+            for(int i=posproduct+1;i<tienda->cantidadProductos;i++){
+                tienda->productos[i-1]=tienda->productos[i];
+            }
+            tienda->productos[tienda->cantidadProductos].id=0;
+            strcpy(tienda->productos[tienda->cantidadProductos].nombre,"");
+            strcpy(tienda->productos[tienda->cantidadProductos].descripcion,"");
+            strcpy(tienda->productos[tienda->cantidadProductos].codigo,"");
+            strcpy(tienda->productos[tienda->cantidadProductos].fechaRegistro,"");
+            strcpy(tienda->productos[tienda->cantidadProductos].fechavencimiento,"");
+            tienda->productos[tienda->cantidadProductos].idProveedor=0;
+            tienda->productos[tienda->cantidadProductos].precio=0;
+            tienda->productos[tienda->cantidadProductos].stock=0;
+        }
+    }
+    else {
+        cout<<"la tienda no ha sido creada"<<endl;
+    }
+}
 int main(){
     Tienda tienda;
     strcpy(tienda.nombre, "Farmacia pipo");
