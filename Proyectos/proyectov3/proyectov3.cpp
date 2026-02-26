@@ -25,7 +25,7 @@ struct Proveedor {
 
 struct Transaccion {
     int id;
-    char tipo[10];
+    int tipo;
     int idProducto;
     int idRelacionado;
     int cantidad;
@@ -34,7 +34,14 @@ struct Transaccion {
     char fecha[11];
     char descripcion[200];
 };
-
+struct Cliente{
+ int cedula;
+ char nombre[100];
+ char correo[100];
+ char telefono[20];
+ char dirreccion[200];
+ char fecharegitro[11]; //formato:YYYY-MM-DD
+};
 struct Tienda {
     char nombre[100];
     char rif[20];
@@ -50,6 +57,10 @@ struct Tienda {
     Transaccion* transacciones = nullptr;
     int capacidadTransacciones = 0;
     int cantidadTransacciones = 0;
+
+    Cliente* clientes=nullptr;
+    int capacidadClientes = 0;
+    int cantidadClientes = 0;
 
     int siguienteIdProducto = 1;
     int siguienteIdProveedor = 1;
@@ -67,28 +78,35 @@ void inicializarTienda(Tienda* tienda){
     // Productos
     int capP = 0;
     cout<<"Ingrese la capacidad inicial de productos: ";
-    while(cin>>capP && capP<=0){ cout<<"Debe ser mayor que 0. Intente nuevamente: "; }
+    while(cin>>capP && capP<=0){ cout<<"Debe ser mayor que 0. Intente nuevamente: "<<endl; }
     tienda->capacidadProductos = capP;
     tienda->productos = new Producto[tienda->capacidadProductos];
-    tienda->cantidadProductos = capP;
     tienda->siguienteIdProducto = 1;
 
     // Proveedores (mínimo 1 para permitir crear productos que referencien proveedores)
     int capProv = 0;
     cout<<"Ingrese la capacidad inicial de proveedores: ";
-    while(cin>>capProv && capProv<=0){ cout<<"Debe ser mayor que 0. Intente nuevamente: "; }
+    while(cin>>capProv && capProv<=0){ cout<<"Debe ser mayor que 0. Intente nuevamente: "<<endl; }
     tienda->capacidadProveedores = capProv;
     tienda->proveedores = new Proveedor[tienda->capacidadProveedores];
-    tienda->cantidadProveedores = capProv;
 
     // Transacciones
     int capT = 0;
     cout<<"Ingrese la capacidad inicial de transacciones: ";
-    while(cin>>capT && capT<=0){ cout<<"Debe ser mayor que 0. Intente nuevamente: "; }
+    while(cin>>capT && capT<=0){ cout<<"Debe ser mayor que 0. Intente nuevamente: "<<endl; }
     tienda->capacidadTransacciones = capT;
     tienda->transacciones = new Transaccion[tienda->capacidadTransacciones];
-    tienda->cantidadTransacciones = capT;
-
+    //Clientes
+    int capC=0;
+    while(capC<=0){
+        cout<<"Ingrese la capacidad inicial de Clientes: ";
+        cin>>capC;
+        if(capC<=0){
+            cout<<"Debe ser mayor que 0. Intente nuevamente: "<<endl;
+        }
+    }
+    tienda->capacidadClientes=capC;
+    tienda->clientes=new Cliente[tienda->capacidadClientes];
     cin.ignore(numeric_limits<streamsize>::max(),'\n');
 }
 
@@ -260,6 +278,7 @@ void Crearproductos(Tienda* tienda){
             cout<<"Producto descartado por el usuario."<<endl;
         }
     }
+    tienda->cantidadProductos=cantidad;
 }
 void Crearproveedor(Tienda* tienda){
     if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
@@ -316,6 +335,7 @@ void Crearproveedor(Tienda* tienda){
             cout<<"Proveedor descartado por el usuario."<<endl;
         }
     }
+    tienda->cantidadProveedores=cantidad;
 }
 void buscarProducto(Tienda* tienda){
     // Implementar búsqueda por ID, nombre, código o proveedor
@@ -790,6 +810,9 @@ void eliminarProducto(Tienda* tienda,int id){
     else {
         cout<<"la tienda no ha sido creada"<<endl;
     }
+}
+void compra(Tienda){
+    
 }
 int main(){
     Tienda tienda;
