@@ -431,7 +431,7 @@ void buscarProducto(Tienda* tienda){
             Producto& p = tienda->productos[i];
             cout<<"ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<"\n";
         }
-
+    }
     void listarProveedores(Tienda* tienda){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         if(tienda->proveedores==nullptr || tienda->cantidadProveedores<=0){ cout<<"No hay proveedores registrados."<<endl; return; }
