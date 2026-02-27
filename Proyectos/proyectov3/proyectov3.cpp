@@ -533,11 +533,11 @@ void editarProveedor(Tienda* tienda, int idProveedor){
     
      
 }
-void buscarProveedor(Tienda* tienda){
+Proveedor buscarProveedor(Tienda* tienda,int id){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
     if(tienda->proveedores!=nullptr){
-        
+     Proveedor& p ;   
     
     int opcion=0;
     while(opcion!=1&&opcion!=2){
@@ -552,24 +552,23 @@ void buscarProveedor(Tienda* tienda){
     bool encontrado =0;
     cin.ignore(numeric_limits<streamsize>::max(),'\n');
 
-    cout <<"ingrese el ID del producto a buscar: ";
-    string input;
-    if(!getline(cin,input)) return;
+    
     int idBuscado = 0;
-    try{ idBuscado = stoi(input); }
+    try{ id; }
     catch(...){ cout<<"ID invalido."<<endl; return; }
     for(int i=0;i<tienda->cantidadProveedores;i++){
         cout<<"id: "<<tienda->proveedores[i].id<<endl;
         if( tienda->proveedores[i].id== idBuscado){
-            Proveedor& p = tienda->proveedores[0];
+            p = tienda->proveedores[i];
             cout<<"proveedor encontrado: ID: "<<p.id<<" | Nombre: "<<p.nombre<<endl;
             encontrado=1;
-            return;
+            
         }
     }
     if(!encontrado){
         cout<<"Proveedor no encontrado."<<endl;
     }
+    return p;
     }
     else if(opcion==2){
         string nombre;
@@ -892,11 +891,13 @@ void venta(Tienda* tienda){
     }
 }
 void compra(Tienda* tienda){
-    Producto* p;
+    Proveedor* p;
     int idprov;
     char respuesta;
     string nombre,direccion;
-    cout<<"Inserte el id del proveedor "
+    cout<<"Inserte el id del proveedor ";
+    p=buscarProveedor(tienda,idprov);
+
 }
 int main(){
      Tienda tienda;
