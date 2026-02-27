@@ -351,7 +351,164 @@ void Crearproveedor(Tienda* tienda){
             cout<<"Proveedor descartado por el usuario."<<endl;
         }
     }
+
+    void Crearcliente(Tienda* tienda){
+        if(tienda->clientes==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
+        string input;
+        int cantidad = 0;
+        cout<<"Ingrese la cantidad de clientes a crear (o 'CANCELAR'/'0' para cancelar): ";
+        while(true){
+            if(!getline(cin, input)) return; // Leer línea completa para permitir espacios
+            if(input=="CANCELAR" || input=="0") { cout<<"Creación cancelada."<<endl; return; }
+            try{ cantidad = stoi(input); }
+            catch(...){ cout<<"Entrada invalida. Ingrese un numero: "; continue; }
+            if(cantidad>0) break;
+            cout<<"La cantidad debe ser mayor a 0. Intente nuevamente: ";
+        }
+        for(int n=0;n<cantidad;n++){
+            Cliente temp{};
+
+            // Cedula (única)
+            while(true){
+                cout<<"Ingrese la cedula del cliente (o 'CANCELAR' para cancelar): ";
+                if(!getline(cin, input)) return;
+                if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+                if(input.empty()){ cout<<"La cedula no puede estar vacía."<<endl; continue; }
+                // Validar que la cedula no exista ya
+                bool cedulaExiste = false;
+                for(int i=0;i<tienda->cantidadClientes;i++){
+                    if(tienda->clientes[i].cedula == stoi(input)){
+                        cedulaExiste = true;
+                        break;
+                    }
+                for (int i=0;i<input.length();i++){
+                    if(!isdigit(input[i])){
+                        cout<<"La cedula solo puede contener numeros."<<endl;
+                        cedulaExiste=true;
+                        break;
+                    }
+                }
+                if(cedulaExiste){ cout<<"La cedula ya existe. Ingrese otra."<<endl; continue; }
+                temp.cedula = stoi(input);
+                break;
+            }
+
+            // Nombre
+            cout<<"Ingrese el nombre del cliente (o 'CANCELAR' para cancelar): ";
+            if(!getline(cin,input)) return;
+            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+            strncpy(temp.nombre, input.c_str(), sizeof(temp.nombre)-1);
+
+            // Correo
+            cout<<"Ingrese el correo del cliente (o 'CANCELAR' para cancelar): ";
+            if(!getline(cin,input)) return;
+            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+            strncpy(temp.correo, input.c_str(), sizeof(temp.correo)-1);
+            for (int i=0;i<strlen(temp.correo);i++){
+                if(temp.correo[i]==' '){
+                    cout<<"Correo invalido. No se permiten espacios."<<endl;
+                    strncpy(temp.correo, "", sizeof(temp.correo)-1);
+                    break;
+                }
+            for (int i=0;i<strlen(temp.correo);i++){
+                if(temp.correo[i]=='@'){
+                    bool puntoEncontrado=false;
+                    for(int j=i+1;j<strlen(temp.correo);j++){
+                        if(temp.correo[j]=='.'){
+                            puntoEncontrado=true;
+                            break;
+                        }
+                    }
+                    if(!puntoEncontrado){
+                        cout<<"Correo invalido. Debe contener un punto (.) después del @."<<endl;
+                        strncpy(temp.correo, "", sizeof(temp.correo)-1);
+                    }
+                    break;
+                }
+            }
+
+            // Telefono
+            cout<<"Ingrese el telefono del cliente (o 'CANCELAR' para cancelar): ";
+            if(!getline(cin,input)) return;
+            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+            strncpy(temp.telefono, input.c_str(), sizeof(temp.telefono)-1);
+            for (int i=0;i<strlen(temp.telefono);i++){
+                if(!isdigit(temp.telefono[i]) && temp.telefono[i]!='+' && temp.telefono[i]!='-' && temp.telefono[i]!=' '){
+                    cout<<"Telefono invalido. Solo se permiten numeros, espacios, + y -."<<endl;
+                    strncpy(temp.telefono, "", sizeof(temp.telefono)-1);
+                    break;
+                }
+
+             // Dirreccion
+            cout<<"Ingrese la dirreccion del cliente (o 'CANCELAR' para cancelar): ";
+            if(!getline(cin,input)) return;
+            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+            strncpy(temp.dirreccion, input.c_str(), sizeof(temp.dirreccion)-1);
+
+             // Fecha de registro
+            cout<<"Ingrese la fecha de registro del cliente (o 'CANCELAR' para cancelar): ";
+            if(!getline(cin,input)) return;
+            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+            strncpy(temp.fechaRegistro, input.c_str(), sizeof(temp.fechaRegistro)-1);
+
+            // Agregar cliente temporal al array de clientes
+            tienda->clientes[tienda->cantidadClientes] = temp;
+            tienda->cantidadClientes++;
+        }
+    }
+
+    void Creartransaccion(Tienda* tienda){
+        if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
+        Transaccion temp{};
+        string input;
+
+        // Tipo de transacción
+        while(true){
+            cout<<"Ingrese el tipo de transacción (1=Venta, 2=Compra) o 'CANCELAR' para cancelar: ";
+            if(!getline(cin,input)) return;
+            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+            try{ temp.tipo = stoi(input); }
+            catch(...){ cout<<"Tipo invalido. Ingrese 1 para Venta o 2 para Compra: "; continue; }
+            if(temp.tipo==1 || temp.tipo==2) break;
+            cout<<"Tipo invalido. Ingrese 1 para Venta o 2 para Compra: ";
+        }
+            // Fecha
+        cout<<"Ingrese la fecha de la transacción (YYYY-MM-DD) o 'CANCELAR' para cancelar: ";
+        if(!getline(cin,input)) return;
+        if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+        strncpy(temp.fecha, input.c_str(), sizeof(temp.fecha)-1);
+        // Descripcion (opcional)
+        cout<<"Ingrese una descripcion para la transaccion (opcional, 'CANCELAR' para cancelar): ";
+        if(!getline(cin,input)) return;
+        if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+        strncpy(temp.descripcion, input.c_str(), sizeof(temp.descripcion)-1);
+        //Asignar ID autoincremental
+        temp.id = tienda->siguienteIdTransaccion++;
+
+        // Confirmación
+        cout<<"\nResumen de la transacción:"<<endl;
+        cout<<"ID: "<<temp.id<<" | Tipo: "<<temp.tipo<<" | Fecha: "<<temp.fecha<<" | Descripcion: "<<temp.descripcion<<"\n";
+        cout<<"¿Desea guardar esta transacción? (S/N): ";
+        cin >> resp ;
+        cin.ignore(numeric_limits<streamsize>::max(),'\n'); // Limpiar el buffer después de leer la respuesta
+        if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
+            // si el arreglo está lleno, redimensionar duplicando capacidad
+            if(tienda->cantidadTransacciones >= tienda->capacidadTransacciones){
+                redimensionarTransaccion(tienda);
+                cout << "Arreglo de transacciones redimensionado a capacidad " << tienda->capacidadTransacciones << "." << endl;
+                for (int i = 0; i < tienda->cantidadTransacciones; i++) {
+                    cout << "Transaccion " << i + 1 << ": ID: " << tienda->transacciones[i].id << " | Tipo: " << tienda->transacciones[i].tipo << " | Fecha: " << tienda->transacciones[i].fecha << " | Descripcion: " << tienda->transacciones[i].descripcion << "\n";
+                    
 }
+            tienda->transacciones[tienda->cantidadTransacciones++] = temp;
+            cout<<"Transacción guardada."<<endl;
+        } else {
+            cout<<"Transacción descartada por el usuario."<<endl;
+        }
+}
+
+}
+
 Producto buscarProducto(Tienda* tienda,int id,string nombre, int opcion){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
