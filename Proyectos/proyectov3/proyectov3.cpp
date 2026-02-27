@@ -351,7 +351,7 @@ void Crearproveedor(Tienda* tienda){
             cout<<"Proveedor descartado por el usuario."<<endl;
         }
     }
-}
+
     void Crearcliente(Tienda* tienda){
         if(tienda->clientes==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         string input;
@@ -392,7 +392,9 @@ void Crearproveedor(Tienda* tienda){
                 temp.cedula = stoi(input);
                 break;
             }
-
+        }
+    }
+}
             // Nombre
             cout<<"Ingrese el nombre del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
@@ -449,20 +451,18 @@ void Crearproveedor(Tienda* tienda){
             cout<<"Ingrese la fecha de registro del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-            strncpy(temp.fecharegitro, input.c_str(), sizeof(temp.fecharegitro)-1);
+            strncpy(temp.fechaRegistro, input.c_str(), sizeof(temp.fechaRegistro)-1);
 
             // Agregar cliente temporal al array de clientes
             tienda->clientes[tienda->cantidadClientes] = temp;
             tienda->cantidadClientes++;
         }
     }
-            }
-        }
-    }
+
     void Creartransaccion(Tienda* tienda){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         Transaccion temp{};
-        string input,resp;
+        string input;
 
         // Tipo de transacción
         while(true){
@@ -474,7 +474,8 @@ void Crearproveedor(Tienda* tienda){
             if(temp.tipo==1 || temp.tipo==2) break;
             cout<<"Tipo invalido. Ingrese 1 para Venta o 2 para Compra: ";
         }
-            // Fecha
+        
+        // Fecha
         cout<<"Ingrese la fecha de la transacción (YYYY-MM-DD) o 'CANCELAR' para cancelar: ";
         if(!getline(cin,input)) return;
         if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
@@ -692,11 +693,11 @@ void editarProveedor(Tienda* tienda, int idProveedor){
     
      
 }
-Proveedor buscarProveedor(Tienda* tienda,int id){
+void buscarProveedor(Tienda* tienda){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
     if(tienda->proveedores!=nullptr){
-     Proveedor& p ;   
+        
     
     int opcion=0;
     while(opcion!=1&&opcion!=2){
@@ -711,24 +712,24 @@ Proveedor buscarProveedor(Tienda* tienda,int id){
     bool encontrado =0;
     cin.ignore(numeric_limits<streamsize>::max(),'\n');
 
-    
+    cout <<"ingrese el ID del producto a buscar: ";
+    string input;
+    if(!getline(cin,input)) return;
     int idBuscado = 0;
-    try{ id; }
+    try{ idBuscado = stoi(input); }
     catch(...){ cout<<"ID invalido."<<endl; return; }
     for(int i=0;i<tienda->cantidadProveedores;i++){
         cout<<"id: "<<tienda->proveedores[i].id<<endl;
         if( tienda->proveedores[i].id== idBuscado){
-            p = tienda->proveedores[i];
+            Proveedor& p = tienda->proveedores[0];
             cout<<"proveedor encontrado: ID: "<<p.id<<" | Nombre: "<<p.nombre<<endl;
             encontrado=1;
-            
+            return;
         }
     }
     if(!encontrado){
         cout<<"Proveedor no encontrado."<<endl;
-        return nullptr;
     }
-    return p;
     }
     else if(opcion==2){
         string nombre;
@@ -993,7 +994,7 @@ void venta(Tienda* tienda){
         cout<<"Introduzca S para registrarlo o N para cancelar";
         cin>>respuesta;
         if(respuesta=='S'||respuesta=='s'){
-             crearCliente(&tienda);
+             //crearCliente(tienda);
         }
         else{
             return ;
@@ -1051,21 +1052,74 @@ void venta(Tienda* tienda){
     }
 }
 void compra(Tienda* tienda){
-    Proveedor* p;
-    Producto* Producto;
-    int idprov,opt;
+    Producto* p;
+    int idprov;
     char respuesta;
     string nombre,direccion;
-    cout<<"Inserte el id del proveedor ";
-    p=buscarProveedor(tienda,idprov);
-    do{
-        cout<<"ese proveedor no existe. 1.Quiere crear el Proveedor o 2.buscar otra vez";
-        if(opt==1){
-            Crearproveedor(tienda);
+    cout<<"Inserte el id del proveedor: ";
+    cin>>idprov;
+    nombre=buscarProveedor(tienda,idprov);
+    if(nombre=="no existe ese proveedor"){
+        cout<<nombre<<" desea registrarlo?"<<endl;
+        cout<<"Introduzca S para registrarlo o N para cancelar";
+        cin>>respuesta;
+        if(respuesta=='S'||respuesta=='s'){
+             //crearProveedor(tienda);
         }
-    }while(p==nullptr);
-    
+        else{
+            return ;
+        }
+    }
+    else{
+        cout<<"Nombre del proveedor: "<<nombre<<" ID: "<<idprov;
+        int opt,id,sub,cantp=1;
+        bool cantver=0;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos=new Productoventa[cantp];
+        do{
+            int cant;
+            cout<<"introduce el id del producto que se va a comprar: ";
+            cin>>id;
+            *p=buscarProducto(tienda,id,"",1);
+            cout<<"El precio del producto es: "<<p->precio<<endl;
+            do{
+            cout<<"introduce la cantidad del producto que se va a comprar: ";
+            cin>>cant;
+            if(cant<=0){
+                cout<<"la cantidad debe ser mayor a 0 intentelo de nuevo.";
+                cantver=1;
+            }
+        }while(cantver==1);
+        sub+=(cant*p->precio);
+        string input;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].id=p->id;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].cantidad=cant;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].preciounidad=p->precio;
+        do{
+        cout<<"desea incluir otro producto? S para si N para no";
+        getline(cin,input);
+        if(input=="S"||input=="s"){
+            opt=1;
+            redimensionarProductosventa(tienda->transacciones);
+        }
+        else if(input=="N"||input=="n"){
+            opt=0;
+        }
+        else{
+            cout<<"Opcion no valida intentelo de nuevo."<<endl;
+            opt=2;
+        }
+        cantp++;
+    }while(opt!=1&&opt!=2);
+        }while(opt==1);
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].id=tienda->siguienteIdTransaccion;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].tipo=2;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].idRelacionado=idprov;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].total=sub;
+        cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
+        string input;
+        strncpy(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha, input.c_str(), sizeof(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha)-1);
 
+    }
 }
 int main(){
      Tienda tienda;
