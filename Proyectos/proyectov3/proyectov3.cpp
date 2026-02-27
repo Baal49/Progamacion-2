@@ -351,7 +351,7 @@ void Crearproveedor(Tienda* tienda){
             cout<<"Proveedor descartado por el usuario."<<endl;
         }
     }
-
+}
     void Crearcliente(Tienda* tienda){
         if(tienda->clientes==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         string input;
@@ -449,18 +449,20 @@ void Crearproveedor(Tienda* tienda){
             cout<<"Ingrese la fecha de registro del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-            strncpy(temp.fechaRegistro, input.c_str(), sizeof(temp.fechaRegistro)-1);
+            strncpy(temp.fecharegitro, input.c_str(), sizeof(temp.fecharegitro)-1);
 
             // Agregar cliente temporal al array de clientes
             tienda->clientes[tienda->cantidadClientes] = temp;
             tienda->cantidadClientes++;
         }
     }
-
+            }
+        }
+    }
     void Creartransaccion(Tienda* tienda){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         Transaccion temp{};
-        string input;
+        string input,resp;
 
         // Tipo de transacción
         while(true){
@@ -724,6 +726,7 @@ Proveedor buscarProveedor(Tienda* tienda,int id){
     }
     if(!encontrado){
         cout<<"Proveedor no encontrado."<<endl;
+        return nullptr;
     }
     return p;
     }
@@ -990,7 +993,7 @@ void venta(Tienda* tienda){
         cout<<"Introduzca S para registrarlo o N para cancelar";
         cin>>respuesta;
         if(respuesta=='S'||respuesta=='s'){
-             //crearCliente(tienda);
+             crearCliente(&tienda);
         }
         else{
             return ;
@@ -1049,11 +1052,19 @@ void venta(Tienda* tienda){
 }
 void compra(Tienda* tienda){
     Proveedor* p;
-    int idprov;
+    Producto* Producto;
+    int idprov,opt;
     char respuesta;
     string nombre,direccion;
     cout<<"Inserte el id del proveedor ";
     p=buscarProveedor(tienda,idprov);
+    do{
+        cout<<"ese proveedor no existe. 1.Quiere crear el Proveedor o 2.buscar otra vez";
+        if(opt==1){
+            Crearproveedor(tienda);
+        }
+    }while(p==nullptr);
+    
 
 }
 int main(){
