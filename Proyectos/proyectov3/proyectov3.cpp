@@ -502,16 +502,6 @@ void buscarProveedor(Tienda* tienda){
             cin>>opcion2;
             opcion2--;
             }while(opcion2<0||opcion2>x);
-            cout<<"Desea editar el proveedor? (S/N): ";
-            string resp;
-    
-            if(!getline(cin,resp)) return;
-            if (resp=="N" || resp=="n" || resp=="No" || resp=="NO" || resp=="no"){
-                cout<<"Edición cancelada."<<endl;
-            }
-            else if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
-                editarProveedor(tienda, idencontrados[opcion2]);
-            }
         }
     }
     
@@ -712,15 +702,15 @@ void editarProducto(Tienda* tienda, int idProducto){
                 // Editar proveedor (validar existencia)
                     cout<<"Ingrese el nuevo ID del proveedor del producto: ";
                     cin>>resp;
-                    bool provvaalido=false;
-                    while(!provvaalido){
+                    int provvaalido=0;
+                    while(provvaalido==0){
                     for(int i=0;i<tienda->cantidadProveedores;i++){
                         if(tienda->proveedores[i].id==resp){
-                            provvaalido=true;
+                            provvaalido=1;
                             break;
                         }
                     }
-                    if(!provvaalido){
+                    if(provvaalido==0){
                         cout<<"el ID del provedor no existe. Intentelo nuevamente."<<endl;
                         break;
                     }
@@ -848,10 +838,16 @@ void compra(Tienda* tienda){
         cout<<"Nombre del cliente: "<<nombre<<" Cedula: "<<cedu<<" Direccion: "<<direccion;
         int opt,id;
         do{
+            int cant;
             cout<<"introduce el id del producto que se va a llevar: ";
             cin>>id;
             *p=buscarProducto(tienda,id,"",1);
-            p.
+            cout<<"El precio del producto es: "p->precio;<<endl;
+            cout<<"introduce la cantidad del producto que se va a llevar: ";
+            cin>>cant;
+            if(cant>stock){
+
+            }
         }while(opt==1);
     }
 }
