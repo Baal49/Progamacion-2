@@ -344,8 +344,8 @@ Producto buscarProducto(Tienda* tienda,int id,string nombre, int opcion){
     int posicion;
     if(opcion==1){
     bool encontrado =0;
-    try{ id }
-    catch(...){ cout<<"ID invalido."<<endl; return; }
+    try{ id; }
+    catch(...){ cout<<"ID invalido."<<endl;  }
     for(int i=0;i<tienda->cantidadProductos;i++){
         if(tienda->productos[i].id == id){
             posicion=i;
@@ -405,17 +405,9 @@ Producto buscarProducto(Tienda* tienda,int id,string nombre, int opcion){
             }while(opcion2<0||opcion2>x);
             cout<<"Desea editar el producto? (S/N): ";
             string resp;
-    
-            if(!getline(cin,resp)) return;
-            if (resp=="N" || resp=="n" || resp=="No" || resp=="NO" || resp=="no"){
-                cout<<"Edición cancelada."<<endl;
-            }
-            else if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
-                editarProducto(tienda, idencontrados[opcion2]);
-            }
         }
     }
-    
+}
     void listarProductos(Tienda* tienda){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         if(tienda->productos==nullptr || tienda->cantidadProductos<=0){ cout<<"No hay productos registrados."<<endl; return; }
@@ -574,7 +566,6 @@ void editarProveedor(Tienda* tienda, int idProveedor){
                 // Editar código (validar único)
                 cout <<"Ingrese el nuevo código del proveedor o 0 para cancelar: ";
                 cin>>respuesta;
-                   if (respuesta==NULL){ cout<<"El código no puede estar vacío. Edición cancelada."<<endl; break; }
                    if ( respuesta==0){ cout<<"Edición cancelada."<<endl; break; }
                 // Asignar nuevo código al producto
                     temp->id=respuesta;
@@ -587,7 +578,6 @@ void editarProveedor(Tienda* tienda, int idProveedor){
                 while (respp.empty()){ cout<<"El nombre no puede estar vacío."<<endl; getline(cin,respp); }
                 while (respp.length() >= sizeof(tienda->proveedores[idBuscado].nombre)){ cout<<"El nombre es demasiado largo. Coloque otro nombre."<<endl; getline(cin,respp); }
                 // Asignar nuevo nombre al producto
-                if (tienda->proveedores[idBuscado].nombre != nullptr) delete[] tienda->proveedores[idBuscado].nombre;
                 if (respp=="CANCELAR" || respp=="0"){ cout<<"Edición cancelada."<<endl; break; }
                 strcpy(temp->nombre,respp.c_str());
                 respp.clear();
@@ -617,6 +607,38 @@ void editarProveedor(Tienda* tienda, int idProveedor){
 
     
      
+}
+void eliminarProducto(Tienda* tienda,int id){
+    if(tienda!=nullptr){
+        int posproduct=-1;
+        for(int i;i<tienda->cantidadProductos;i++){
+            if(id==tienda->productos[i].id){
+                posproduct=i;
+                break;
+            }
+        }
+        if(posproduct==-1){
+            cout<<"no existe ese producto"<<endl;
+            return;
+        }
+        else{
+            for(int i=posproduct+1;i<tienda->cantidadProductos;i++){
+                tienda->productos[i-1]=tienda->productos[i];
+            }
+            tienda->productos[tienda->cantidadProductos].id=0;
+            strcpy(tienda->productos[tienda->cantidadProductos].nombre,"");
+            strcpy(tienda->productos[tienda->cantidadProductos].descripcion,"");
+            strcpy(tienda->productos[tienda->cantidadProductos].codigo,"");
+            strcpy(tienda->productos[tienda->cantidadProductos].fechaRegistro,"");
+            strcpy(tienda->productos[tienda->cantidadProductos].fechavencimiento,"");
+            tienda->productos[tienda->cantidadProductos].idProveedor=0;
+            tienda->productos[tienda->cantidadProductos].precio=0;
+            tienda->productos[tienda->cantidadProductos].stock=0;
+        }
+    }
+    else {
+        cout<<"la tienda no ha sido creada"<<endl;
+    }
 }
 void editarProducto(Tienda* tienda, int idProducto){
     //Funcion para editar algun aspecto del producto
@@ -741,7 +763,6 @@ void editarProducto(Tienda* tienda, int idProducto){
                 getline(cin,respp);
                 while(respp.empty()){cout<<"La fecha de vencimiento no puede estar vacia."<<endl;getline(cin,respp);}
                 while(respp.length()>sizeof(tienda->productos[idBuscado].fechavencimiento)){cout<<"La fecha de vencimiento es demasiado larga."<<endl; getline(cin,respp);}
-                if(tienda->productos[idBuscado].fechavencimiento!=nullptr) delete[] tienda->productos[idBuscado].fechavencimiento;
                 if (respp=="CANCELAR" || respp=="0"){ cout<<"Edición cancelada."<<endl; break; }
                 strcpy(temp->fechavencimiento,respp.c_str());
                 cout<<"Fecha de vencimiento actualizada."<<endl;
@@ -803,38 +824,7 @@ void eliminarProveedor(Tienda* tienda,int id){
         cout<<"La tienda no ha sido creada"<<endl;
     }
 }
-void eliminarProducto(Tienda* tienda,int id){
-    if(tienda!=nullptr){
-        int posproduct=-1;
-        for(int i;i<tienda->cantidadProductos;i++){
-            if(id==tienda->productos[i].id){
-                posproduct=i;
-                break;
-            }
-        }
-        if(posproduct==-1){
-            cout<<"no existe ese producto"<<endl;
-            return;
-        }
-        else{
-            for(int i=posproduct+1;i<tienda->cantidadProductos;i++){
-                tienda->productos[i-1]=tienda->productos[i];
-            }
-            tienda->productos[tienda->cantidadProductos].id=0;
-            strcpy(tienda->productos[tienda->cantidadProductos].nombre,"");
-            strcpy(tienda->productos[tienda->cantidadProductos].descripcion,"");
-            strcpy(tienda->productos[tienda->cantidadProductos].codigo,"");
-            strcpy(tienda->productos[tienda->cantidadProductos].fechaRegistro,"");
-            strcpy(tienda->productos[tienda->cantidadProductos].fechavencimiento,"");
-            tienda->productos[tienda->cantidadProductos].idProveedor=0;
-            tienda->productos[tienda->cantidadProductos].precio=0;
-            tienda->productos[tienda->cantidadProductos].stock=0;
-        }
-    }
-    else {
-        cout<<"la tienda no ha sido creada"<<endl;
-    }
-}
+
 void compra(Tienda* tienda){
     Producto* p;
     int cedu;
@@ -861,7 +851,7 @@ void compra(Tienda* tienda){
             cout<<"introduce el id del producto que se va a llevar: ";
             cin>>id;
             *p=buscarProducto(tienda,id,"",1);
-            
+            p.
         }while(opt==1);
     }
 }
@@ -1027,6 +1017,8 @@ int main(){
     // buscarTransaccionesPorProducto(&tienda, 1);
 
     liberarTienda(&tienda);
-    return 0;
+    
+}while(opcion!=5);
+return 0;
 }
 }
