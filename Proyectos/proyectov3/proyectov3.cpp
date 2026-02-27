@@ -337,36 +337,29 @@ void Crearproveedor(Tienda* tienda){
     }
     tienda->cantidadProveedores=cantidad;
 }
-void buscarProducto(Tienda* tienda){
+Producto buscarProducto(Tienda* tienda,int id,string nombre, int opcion){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
-    int opcion=0;
-    while(opcion!=1&&opcion!=2){
-        cout<<"Quiere hacer la busqueda del producto por 1.ID o por 2.Nombre";
-        cin>>opcion;
-        if(opcion!=1&&opcion!=2){
-            cout<<"esa opcion es invalida intentelo de nuevo.";
-        }
-    }
     
+    int posicion;
     if(opcion==1){
     bool encontrado =0;
-    cout <<"ingrese el ID del producto a buscar: ";
-    string input;
-    if(!getline(cin,input)) return;
-    int idBuscado = 0;
-    try{ idBuscado = stoi(input); }
+    try{ id }
     catch(...){ cout<<"ID invalido."<<endl; return; }
     for(int i=0;i<tienda->cantidadProductos;i++){
-        if(tienda->productos[i].id == idBuscado){
+        if(tienda->productos[i].id == id){
+            posicion=i;
             Producto& p = tienda->productos[i];
             cout<<"Producto encontrado: ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<"\n";
             encontrado=1;
-            return;
+            
         }
     }
     if(!encontrado){
         cout<<"Producto no encontrado."<<endl;
+    }
+    else{
+        return tienda->productos[posicion];
     }
     cout<<"Desea editar el producto? (S/N): ";
     string resp;
@@ -376,7 +369,7 @@ void buscarProducto(Tienda* tienda){
         cout<<"Edición cancelada."<<endl;
     }
     else if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
-        editarProducto(tienda, idBuscado);
+        editarProducto(tienda, id);
     }
     }
     else if(opcion==2){
@@ -515,14 +508,19 @@ void buscarProveedor(Tienda* tienda){
 }
 string buscarCliente(Tienda* tienda,int cedula){
     if(tienda->clientes!=nullptr){
-        int posicion;
+        int posicion=-1;
         for(int i=0;i<tienda->cantidadClientes;i++){
             if(tienda->clientes[i].cedula){
                 posicion=i;
                 break;
             }
         }
-        return tienda->clientes[posicion].nombre,tienda->clientes[posicion].dirreccion;
+        if(posicion!=-1){
+            return tienda->clientes[posicion].nombre,tienda->clientes[posicion].dirreccion;
+        }
+        else{
+            return "no existe ese cliente";
+        }
     }
 
 }
@@ -820,10 +818,34 @@ void eliminarProducto(Tienda* tienda,int id){
     }
 }
 void compra(Tienda* tienda){
+    Producto* p;
     int cedu;
+    char respuesta;
+    string nombre,direccion;
     cout<<"Inserte la cedula del cliente";
     cin>>cedu;
-    buscarCliente(tienda,cedu);
+    nombre,direccion=buscarCliente(tienda,cedu);
+    if(nombre=="no existe ese cliente"){
+        cout<<nombre<<" desea registrarlo?"<<endl;
+        cout<<"Introduzca S para registrarlo o N para cancelar";
+        cin>>respuesta;
+        if(respuesta=='S'||respuesta=='s'){
+             crearCliente(tienda);
+        }
+        else{
+            return ;
+        }
+    }
+    else{
+        cout<<"Nombre del cliente: "<<nombre<<" Cedula: "<<cedu<<" Direccion: "<<direccion;
+        int opt,id;
+        do{
+            cout<<"introduce el id del producto que se va a llevar: ";
+            cin>>id;
+            *p=buscarProducto(tienda,id,"",1);
+            
+        }while(opt==1);
+    }
 }
 void venta(Tienda* tienda){
 
@@ -869,6 +891,14 @@ int main(){
                         buscarProducto(&tienda);
                         break;
                     case 3:
+                        int opcion=0;
+                         while(opcion!=1&&opcion!=2){
+                            cout<<"Quiere hacer la busqueda del producto por 1.ID o por 2.Nombre";
+                            cin>>opcion;
+                            if(opcion!=1&&opcion!=2){
+                            cout<<"esa opcion es invalida intentelo de nuevo.";
+                            }
+                        }
                         editarProducto(&tienda);
                         break;
                     case 4:
