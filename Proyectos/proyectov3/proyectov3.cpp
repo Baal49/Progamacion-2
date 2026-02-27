@@ -457,6 +457,76 @@ void Crearproveedor(Tienda* tienda){
             tienda->clientes[tienda->cantidadClientes] = temp;
             tienda->cantidadClientes++;
         }
+
+        void Editarcliente (Tienda* tienda, int cedula){
+            // Implementar función para editar los datos de un cliente existente
+            for(int i=0;i<tienda->cantidadClientes;i++){
+                if(tienda->clientes[i].cedula == cedula){
+                    // Encontrado el cliente, mostrar opciones de edición
+                    cout<<"Cliente encontrado: "<<tienda->clientes[i].nombre<<" | Cedula: "<<tienda->clientes[i].cedula<<" | Correo: "<<tienda->clientes[i].correo<<" | Telefono: "<<tienda->clientes[i].telefono<<" | Dirreccion: "<<tienda->clientes[i].dirreccion<<" | Fecha de registro: "<<tienda->clientes[i].fecharegitro<<endl;
+                    cout<<"¿Qué desea editar?"<<endl;
+                    cout<<"1. Nombre"<<endl;
+                    cout<<"2. Correo"<<endl;
+                    cout<<"3. Telefono"<<endl;
+                    cout<<"4. Dirreccion"<<endl;
+                    cout<<"5. Fecha de registro"<<endl;
+                    cout<<"0. Cancelar"<<endl;
+                    int opcion;
+                    cin>>opcion;
+                    cin.ignore(numeric_limits<streamsize>::max(),'\n'); // Limpiar el buffer después de leer la opción
+                    switch(opcion){
+                        case 1:
+                            cout<<"Ingrese el nuevo nombre del cliente (o 'CANCELAR' para cancelar): ";
+                            string input;
+                            if(!getline(cin,input)) return;
+                            if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
+                            strncpy(tienda->clientes[i].nombre, input.c_str(), sizeof(tienda->clientes[i].nombre)-1);
+                            break;
+                        case 2:
+                            cout<<"Ingrese el nuevo correo del cliente (o 'CANCELAR' para cancelar): ";
+                            if(!getline(cin,input)) return;
+                            if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
+                            strncpy(tienda->clientes[i].correo, input.c_str(), sizeof(tienda->clientes[i].correo)-1);
+                            break;
+                        case 3:
+                            cout<<"Ingrese el nuevo telefono del cliente (o 'CANCELAR' para cancelar): ";
+                            if(!getline(cin,input)) return;
+                            if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
+                            strncpy(tienda->clientes[i].telefono, input.c_str(), sizeof(tienda->clientes[i].telefono)-1);
+                            break;
+                        case 4:
+                            cout<<"Ingrese la nueva dirreccion del cliente (o 'CANCELAR' para cancelar): ";
+                            if(!getline(cin,input)) return;
+                            if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
+                            strncpy(tienda->clientes[i].dirreccion, input.c_str(), sizeof(tienda->clientes[i].dirreccion)-1);
+                            break;
+                        case 5:
+                            cout<<"Ingrese la nueva fecha de registro del cliente (o 'CANCELAR' para cancelar): ";
+                            if(!getline(cin,input)) return;
+                            if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
+                            strncpy(tienda->clientes[i].fecharegitro, input.c_str(), sizeof(tienda->clientes[i].fecharegitro)-1);
+                            break;
+                        case 0:
+                            cout<<"Edición cancelada."<<endl;
+                            return; 
+                        default:
+                            cout<<"Opción inválida. Edición cancelada."<<endl;
+                            return;
+
+    }
+
+    void Listarcliente (Tienda* tienda){
+        if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
+        if(tienda->clientes==nullptr || tienda->cantidadClientes<=0){ cout<<"No hay clientes registrados."<<endl; return; }
+        cout<<"Listado de clientes:\n";
+        for(int i=0;i<tienda->cantidadClientes;i++){
+            Cliente& c = tienda->clientes[i];
+            cout<<"Cedula: "<<c.cedula<<" | Nombre: "<<c.nombre<<" | Correo: "<<c.correo<<" | Telefono: "<<c.telefono<<" | Dirreccion: "<<c.dirreccion<<" | Fecha de registro: "<<c.fecharegitro<<"\n";
+        }
+        for (int i=0;i<tienda->cantidadClientes;i++){
+            cout<<"Cliente "<<i+1<<": Cedula: "<<tienda->clientes[i].cedula<<" | Nombre: "<<tienda->clientes[i].nombre<<" | Correo: "<<tienda->clientes[i].correo<<" | Telefono: "<<tienda->clientes[i].telefono<<" | Dirreccion: "<<tienda->clientes[i].dirreccion<<" | Fecha de registro: "<<tienda->clientes[i].fecharegitro<<"\n";      
+        }
+
     }
 
     void Creartransaccion(Tienda* tienda){
@@ -508,6 +578,30 @@ void Crearproveedor(Tienda* tienda){
         } else {
             cout<<"Transacción descartada por el usuario."<<endl;
         }
+}
+
+    void Buscartransaccion (Tienda* tienda, int id){
+        if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
+        if(tienda->transacciones==nullptr || tienda->cantidadTransacciones<=0){ cout<<"No hay transacciones registradas."<<endl; return; }
+        bool encontrado = false;
+        for(int i=0;i<tienda->cantidadTransacciones;i++){
+            if(tienda->transacciones[i].id == id){
+                Transaccion& t = tienda->transacciones[i];
+                cout<<"Transacción encontrada: ID: "<<t.id<<" | Tipo: "<<t.tipo<<" | Fecha: "<<t.fecha<<" | Descripcion: "<<t.descripcion<<"\n";
+                encontrado = true;
+                break;
+            }
+        }
+        if(!encontrado){
+            cout<<"Transacción con ID "<<id<<" no encontrada."<<endl;
+        }
+        for (int i=0;i<tienda->cantidadTransacciones;i++){
+            cout<<"Transaccion "<<i+1<<": ID: "<<tienda->transacciones[i].id<<" | Tipo: "<<tienda->transacciones[i].tipo<<" | Fecha: "<<tienda->transacciones[i].fecha<<" | Descripcion: "<<tienda->transacciones[i].descripcion<<"\n";
+        }
+        for (int i=0;i<tienda->cantidadTransacciones;i++){
+            if(tienda->transacciones[i].id==id){
+                cout<<"Transaccion encontrada: ID: "<<tienda->transacciones[i].id<<" | Tipo: "<<tienda->transacciones[i].tipo<<" | Fecha: "<<tienda->transacciones[i].fecha<<" | Descripcion: "<<tienda->transacciones[i].descripcion<<"\n";
+                return;
 }
 
 }
