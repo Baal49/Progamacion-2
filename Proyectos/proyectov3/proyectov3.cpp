@@ -1240,7 +1240,7 @@ int main(){
                 }
                 break;
             case 3:
-                /*cout <<"╔═══════════════════════════════════════════╗"<<endl;
+                cout <<"╔═══════════════════════════════════════════╗"<<endl;
                 cout <<"║         GESTIÓN DE CLIENTES              ║"<<endl;
                 cout <<"╚═══════════════════════════════════════════╝"<<endl;
 
@@ -1274,7 +1274,7 @@ int main(){
                         break;
                     default:
                         cout<<"Opción inválida. Intente nuevamente."<<endl;
-                }*/
+                }
                 break;
             case 4:
                 cout <<"╔═══════════════════════════════════════════╗"<<endl;
