@@ -3,6 +3,7 @@
 #include <limits>
 #include <string>
 #include <cstring>
+#include <iomanip>
 using namespace std;
 
 struct Producto {
@@ -351,7 +352,7 @@ void Crearproveedor(Tienda* tienda){
             cout<<"Proveedor descartado por el usuario."<<endl;
         }
     }
-
+}
     void Crearcliente(Tienda* tienda){
         if(tienda->clientes==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         string input;
@@ -428,7 +429,7 @@ void Crearproveedor(Tienda* tienda){
                     break;
                 }
             }
-
+        }
             // Telefono
             cout<<"Ingrese el telefono del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
@@ -602,10 +603,12 @@ void Crearproveedor(Tienda* tienda){
             if(tienda->transacciones[i].id==id){
                 cout<<"Transaccion encontrada: ID: "<<tienda->transacciones[i].id<<" | Tipo: "<<tienda->transacciones[i].tipo<<" | Fecha: "<<tienda->transacciones[i].fecha<<" | Descripcion: "<<tienda->transacciones[i].descripcion<<"\n";
                 return;
-}
+            }
+        }
+        cout<<"Transaccion con ID "<<id<<" no encontrada."<<endl;
+    }
 
 }
-
 Producto buscarProducto(Tienda* tienda,int id,string nombre, int opcion){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
@@ -671,11 +674,32 @@ return tienda->productos[posicion];
     void listarProductos(Tienda* tienda){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         if(tienda->productos==nullptr || tienda->cantidadProductos<=0){ cout<<"No hay productos registrados."<<endl; return; }
-        cout<<"Listado de productos:\n";
+                 
+        // cabecera del cuadro
+        cout<<"╔══════════════════════════════════════════════════════════════════════════╗\n";
+        cout<<"║                         LISTADO DE PRODUCTOS                             ║\n";
+        cout<<"╠════╦═══════════╦══════════════════╦══════════════╦═══════╦════════╦══════╣\n";
+        cout<<"║ ID ║  Código   ║     Nombre       ║  Proveedor   ║ Precio║ Stock  ║ Fecha║\n";
+        cout<<"╠════╬═══════════╬══════════════════╬══════════════╬═══════╬════════╬══════╣\n";
+
         for(int i=0;i<tienda->cantidadProductos;i++){
             Producto& p = tienda->productos[i];
-            cout<<"ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<"\n";
+            const char* provName = "N/A";
+            for(int j=0;j<tienda->cantidadProveedores;j++){
+                if(tienda->proveedores[j].id == p.idProveedor){
+                    provName = tienda->proveedores[j].nombre;
+                    break;
+                }
+            }
+            cout<<"║ "<<setw(2)<<p.id<<" ║ "
+                <<setw(9)<<p.codigo<<" ║ "
+                <<setw(16)<<p.nombre<<" ║ "
+                <<setw(12)<<provName<<" ║ "
+                <<setw(6)<<fixed<<setprecision(2)<<p.precio<<"║ "
+                <<setw(6)<<p.stock<<" ║ "
+                <<setw(4)<<p.fechaRegistro<<" ║\n";
         }
+        cout<<"╚════╩═══════════╩══════════════════╩══════════════╩═══════╩════════╩══════╝\n";
     }
     void listarProveedores(Tienda* tienda){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
