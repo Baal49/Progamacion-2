@@ -22,17 +22,21 @@ struct Proveedor {
     char nombre[100];
     // otros campos omitidos para brevedad
 };
-
+struct Productoventa{
+    int id;
+    int cantidad;
+    int preciounidad;
+}
 struct Transaccion {
     int id;
     int tipo;
-    int idProducto;
+    Productoventa* productos=nullptr ;
     int idRelacionado;
     int cantidad;
     float precioUnitario;
     float total;
     char fecha[11];
-    char descripcion[200];
+    char descripcion[200];//opcional
 };
 struct Cliente{
  int cedula;
@@ -147,6 +151,15 @@ void redimensionarProductos(Tienda* tienda){
     delete[] tienda->productos;
     tienda->productos = nuevo;
     tienda->capacidadProductos = nuevaCap;
+}
+void redimensionarProductosventa(Transaccion* transaccion){
+    int nuevaCap = (transaccion->cantidad>0) ? transaccion->cantidad++ : 1;
+    Productoventa* nuevo = new Productoventa[nuevaCap];
+    // copiar existentes
+    for(int i=0;i<transaccion->cantidad;i++) nuevo[i] = transaccion->productos[i];
+    delete[] transaccion->productos;
+    transaccion->productos = nuevo;
+    transaccion->cantidad = nuevaCap;
 }
 void redimensionarProveedor(Tienda* tienda){
     int nuevaCap = (tienda->cantidadProveedores>0) ? tienda->capacidadProveedores*2 : 1;
@@ -826,8 +839,9 @@ void compra(Tienda* tienda){
     }
     else{
         cout<<"Nombre del cliente: "<<nombre<<" Cedula: "<<cedu<<" Direccion: "<<direccion;
-        int opt,id,sub;
+        int opt,id,sub,cantp=1;
         bool cantver=0;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos=new Productoventa[cantp];
         do{
             int cant;
             cout<<"introduce el id del producto que se va a llevar: ";
@@ -843,8 +857,35 @@ void compra(Tienda* tienda){
             }
         }while(cantver==1);
         sub+=(cant*p->precio);
-        
+        string input;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].id=p->id;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].cantidad=cant;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].preciounidad=p->precio;
+        do{
+        cout<<"desea incluir otro producto? S para si N para no"
+        getline(cin,input);
+        if(input=="S"||input=="s"){
+            opt=1;
+            redimensionarProductosventa(tienda->transacciones);
+        }
+        else if(input=="N"||input=="n"){
+            opt=0;
+        }
+        else{
+            cout<<"Opcion no valida intentelo de nuevo."<<endl;
+            opt=2;
+        }
+        cantp++;
+    }while(opt!=1&&opt!=2);
         }while(opt==1);
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].id=tienda->siguienteIdTransaccion;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].tipo=1;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].idRelacionado=cedu;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].total=sub;
+        cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
+        string input;
+        strncpy(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha, input.c_str(), sizeof(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha)-1);
+
     }
 }
 void venta(Tienda* tienda){
