@@ -79,38 +79,21 @@ void inicializarTienda(Tienda* tienda){
     cin.getline(tienda->rif,20);
 
     // Productos
-    int capP = 0;
-    cout<<"Ingrese la capacidad inicial de productos: ";
-    while(cin>>capP && capP<=0){ cout<<"Debe ser mayor que 0. Intente nuevamente: "<<endl; }
-    tienda->capacidadProductos = capP;
+    int cap = 5;
+    tienda->capacidadProductos = cap;
     tienda->productos = new Producto[tienda->capacidadProductos];
     tienda->siguienteIdProducto = 1;
 
     // Proveedores (mínimo 1 para permitir crear productos que referencien proveedores)
-    int capProv = 0;
-    cout<<"Ingrese la capacidad inicial de proveedores: ";
-    while(cin>>capProv && capProv<=0){ cout<<"Debe ser mayor que 0. Intente nuevamente: "<<endl; }
-    tienda->capacidadProveedores = capProv;
+    tienda->capacidadProveedores = cap;
     tienda->proveedores = new Proveedor[tienda->capacidadProveedores];
 
     // Transacciones
-    int capT = 0;
-    cout<<"Ingrese la capacidad inicial de transacciones: ";
-    while(cin>>capT && capT<=0){ cout<<"Debe ser mayor que 0. Intente nuevamente: "<<endl; }
-    tienda->capacidadTransacciones = capT;
+    tienda->capacidadTransacciones = cap;
     tienda->transacciones = new Transaccion[tienda->capacidadTransacciones];
     //Clientes
-    int capC=0;
-    while(capC<=0){
-        cout<<"Ingrese la capacidad inicial de Clientes: ";
-        cin>>capC;
-        if(capC<=0){
-            cout<<"Debe ser mayor que 0. Intente nuevamente: "<<endl;
-        }
-    }
-    tienda->capacidadClientes=capC;
-    tienda->clientes=new Cliente[tienda->capacidadClientes];
-    cin.ignore(numeric_limits<streamsize>::max(),'\n');
+    tienda->capacidadClientes=cap;
+    tienda->clientes=new Cliente[cap];
 }
 
 void liberarTienda(Tienda* tienda){
@@ -150,6 +133,15 @@ void redimensionarProductos(Tienda* tienda){
     delete[] tienda->productos;
     tienda->productos = nuevo;
     tienda->capacidadProductos = nuevaCap;
+}
+void redimensionarTransaccion(Tienda* tienda){
+    int nuevaCap = (tienda->cantidadTransacciones>0) ? tienda->capacidadTransacciones*2 : 1;
+    Transaccion* nuevo = new Transaccion[nuevaCap];
+    // copiar existentes
+    for(int i=0;i<tienda->cantidadTransacciones;i++) nuevo[i] = tienda->transacciones[i];
+    delete[] tienda->transacciones;
+    tienda->transacciones = nuevo;
+    tienda->capacidadTransacciones = nuevaCap;
 }
 void redimensionarProductosventa(Transaccion* transaccion){
     int nuevaCap = (transaccion->cantidad>0) ? transaccion->cantidad++ : 1;
@@ -412,6 +404,7 @@ void Crearproveedor(Tienda* tienda){
                     strncpy(temp.correo, "", sizeof(temp.correo)-1);
                     break;
                 }
+            }
             for (int i=0;i<strlen(temp.correo);i++){
                 if(temp.correo[i]=='@'){
                     bool puntoEncontrado=false;
@@ -428,6 +421,7 @@ void Crearproveedor(Tienda* tienda){
                     }
                     
                 }
+            }
             // Telefono
             cout<<"Ingrese el telefono del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
@@ -450,16 +444,19 @@ void Crearproveedor(Tienda* tienda){
             cout<<"Ingrese la fecha de registro del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-            strncpy(temp.fechaRegistro, input.c_str(), sizeof(temp.fechaRegistro)-1);
+            strncpy(temp.fecharegitro, input.c_str(), sizeof(temp.fecharegitro)-1);
 
             // Agregar cliente temporal al array de clientes
             tienda->clientes[tienda->cantidadClientes] = temp;
             tienda->cantidadClientes++;
         }
- }
-}
+ 
+
+        }
+    }
         void Editarcliente (Tienda* tienda, int cedula){
             // Implementar función para editar los datos de un cliente existente
+            string input;
             for(int i=0;i<tienda->cantidadClientes;i++){
                 if(tienda->clientes[i].cedula == cedula){
                     // Encontrado el cliente, mostrar opciones de edición
@@ -475,9 +472,12 @@ void Crearproveedor(Tienda* tienda){
                     cin>>opcion;
                     cin.ignore(numeric_limits<streamsize>::max(),'\n'); // Limpiar el buffer después de leer la opción
                     switch(opcion){
+                        case 0:
+                            cout<<"Edición cancelada."<<endl;
+                            return; 
                         case 1:
                             cout<<"Ingrese el nuevo nombre del cliente (o 'CANCELAR' para cancelar): ";
-                            string input;
+                            
                             if(!getline(cin,input)) return;
                             if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
                             strncpy(tienda->clientes[i].nombre, input.c_str(), sizeof(tienda->clientes[i].nombre)-1);
@@ -506,15 +506,15 @@ void Crearproveedor(Tienda* tienda){
                             if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
                             strncpy(tienda->clientes[i].fecharegitro, input.c_str(), sizeof(tienda->clientes[i].fecharegitro)-1);
                             break;
-                        case 0:
-                            cout<<"Edición cancelada."<<endl;
-                            return; 
+                        
                         default:
                             cout<<"Opción inválida. Edición cancelada."<<endl;
                             return;
 
+        }
     }
-
+}
+        }
     void Listarcliente (Tienda* tienda){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         if(tienda->clientes==nullptr || tienda->cantidadClientes<=0){ cout<<"No hay clientes registrados."<<endl; return; }
@@ -533,7 +533,7 @@ void Crearproveedor(Tienda* tienda){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         Transaccion temp{};
         string input;
-
+        string resp;
         // Tipo de transacción
         while(true){
             cout<<"Ingrese el tipo de transacción (1=Venta, 2=Compra) o 'CANCELAR' para cancelar: ";
@@ -579,7 +579,7 @@ void Crearproveedor(Tienda* tienda){
             cout<<"Transacción descartada por el usuario."<<endl;
         }
 }
-
+}
     void Buscartransaccion (Tienda* tienda, int id){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         if(tienda->transacciones==nullptr || tienda->cantidadTransacciones<=0){ cout<<"No hay transacciones registradas."<<endl; return; }
@@ -607,7 +607,7 @@ void Crearproveedor(Tienda* tienda){
         cout<<"Transaccion con ID "<<id<<" no encontrada."<<endl;
     }
 
-}
+
 Producto buscarProducto(Tienda* tienda,int id,string nombre, int opcion){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
@@ -805,47 +805,35 @@ void editarProveedor(Tienda* tienda, int idProveedor){
             default:
                 cout<<"Opción inválida."<<endl;
         }
-    }while(respuesta!=0&&respuesta!=7);
-
-    
-     
+    }while(respuesta!=0&&respuesta!=7);  
 }
-void buscarProveedor(Tienda* tienda){
+
+Proveedor buscarProveedor(Tienda* tienda,int id,string nombre,int opcion){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
     if(tienda->proveedores!=nullptr){
-        
-    
-    int opcion=0;
-    while(opcion!=1&&opcion!=2){
-        cout<<"Quiere hacer la busqueda del proveedor por 1.ID o por 2.Nombre";
-        cin>>opcion;
-        if(opcion!=1&&opcion!=2){
-            cout<<"esa opcion es invalida intentelo de nuevo.";
-        }
-    }
-    
     if(opcion==1){
     bool encontrado =0;
     cin.ignore(numeric_limits<streamsize>::max(),'\n');
-
+    Proveedor* p=nullptr;
     cout <<"ingrese el ID del producto a buscar: ";
     string input;
-    if(!getline(cin,input)) return;
+    getline(cin,input);
     int idBuscado = 0;
     try{ idBuscado = stoi(input); }
-    catch(...){ cout<<"ID invalido."<<endl; return; }
+    catch(...){ cout<<"ID invalido."<<endl;  }
     for(int i=0;i<tienda->cantidadProveedores;i++){
         cout<<"id: "<<tienda->proveedores[i].id<<endl;
         if( tienda->proveedores[i].id== idBuscado){
             Proveedor& p = tienda->proveedores[0];
             cout<<"proveedor encontrado: ID: "<<p.id<<" | Nombre: "<<p.nombre<<endl;
             encontrado=1;
-            return;
+            return p;
         }
     }
     if(!encontrado){
         cout<<"Proveedor no encontrado."<<endl;
+        return *p;
     }
     }
     else if(opcion==2){
@@ -1170,18 +1158,19 @@ void venta(Tienda* tienda){
 }
 void compra(Tienda* tienda){
     Producto* p;
+    Proveedor* prov;
     int idprov;
     char respuesta;
     string nombre,direccion;
     cout<<"Inserte el id del proveedor: ";
     cin>>idprov;
-    nombre=buscarProveedor(tienda,idprov);
+    *prov=buscarProveedor(tienda,idprov,"",1);
     if(nombre=="no existe ese proveedor"){
         cout<<nombre<<" desea registrarlo?"<<endl;
         cout<<"Introduzca S para registrarlo o N para cancelar";
         cin>>respuesta;
         if(respuesta=='S'||respuesta=='s'){
-             //crearProveedor(tienda);
+             Crearproveedor(tienda);
         }
         else{
             return ;
@@ -1310,7 +1299,9 @@ int main(){
                         listarProductos(&tienda);
                         break;
                     case 6:
-                        eliminarProducto(&tienda, 1); // Example ID for deletion
+                        cout<<"ingrese el id del del producto que se quiere borrar";
+                        cin>>id;
+                        eliminarProducto(&tienda, id); 
                         break;
                     case 0:
                         cout<<"Volviendo al menú principal..."<<endl;
@@ -1338,16 +1329,35 @@ int main(){
                         Crearproveedor(&tienda);
                         break;
                     case 2:
-                        buscarProveedor(&tienda);
+                        while(opcion!=1&&opcion!=2){
+                            cout<<"Quiere hacer la busqueda del proveedor por 1.ID o por 2.Nombre";
+                            cin>>opcion;
+                            if(opcion!=1&&opcion!=2){
+                                cout<<"esa opcion es invalida intentelo de nuevo.";
+                            }
+                        }
+                        if(opcion==1){
+                            cout<<"ingrese el id del proveedor a buscar";
+                            cin>>id;
+                        }
+                        if(opcion==2){
+                            cout<<"ingrese el nombre del proveedor a buscar";
+                            getline(cin,nombre);
+                        }
+                        buscarProveedor(&tienda,id,nombre,opcion);
                         break;
                     case 3:
-                        editarProveedor(&tienda,1);
+                        cout<<"ingrese el id del del producto que se quiere editar";
+                        cin>>id;
+                        editarProveedor(&tienda,id);
                         break;
                     case 4:
                         listarProveedores(&tienda);
                         break;
                     case 5:
-                        eliminarProveedor(&tienda, 1); // Example ID for deletion
+                        cout<<"ingrese el id del del producto que se quiere borrar";
+                        cin>>id;
+                        eliminarProveedor(&tienda, id); 
                         break;
                     case 0:
                         cout<<"Volviendo al menú principal..."<<endl;
@@ -1372,21 +1382,25 @@ int main(){
                 
                 switch(opcion){
                     case 1:
-                        Crearclientes(&tienda);
+                        Crearcliente(&tienda);
                         break;
                     case 2:
-                        buscarCliente(&tienda);
+                        cout<<"Inserte la cedula del cliente";
+                        cin>>id;
+                        buscarCliente(&tienda,id);
                         break;
                     case 3:
-                        editarCliente(&tienda);
+                        cout<<"Inserte la cedula del cliente";
+                        cin>>id;
+                        Editarcliente(&tienda,id);
                         break;
                     case 4:
-                        listarClientes(&tienda);
+                       // listarClientes(&tienda);
                         break;
                     case 5:
-                        cout<<"Introduzca el id del cliente que quiere borrar";
+                       /* cout<<"Introduzca el id del cliente que quiere borrar";
                         cin>>id;
-                        eliminarCliente(&tienda, id); // Example ID for deletion
+                        eliminarCliente(&tienda, id); // Example ID for deletion*/
                         break;
                     case 0:
                         cout<<"Volviendo al menú principal..."<<endl;
@@ -1422,7 +1436,7 @@ int main(){
                         //listarClientes(&tienda);
                         break;
                     case 5:
-                        //eliminarCliente(&tienda, 1); // Example ID for deletion
+                        //eliminarCliente(&tienda, 1); 
                         break;
                     case 0:
                         cout<<"Volviendo al menú principal..."<<endl;
