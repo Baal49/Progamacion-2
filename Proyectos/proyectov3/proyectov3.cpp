@@ -368,11 +368,6 @@ void buscarProducto(Tienda* tienda){
     if(!encontrado){
         cout<<"Producto no encontrado."<<endl;
     }
-    
-
-
-
-
     cout<<"Desea editar el producto? (S/N): ";
     string resp;
     
@@ -517,6 +512,19 @@ void buscarProveedor(Tienda* tienda){
         }
     }
     
+}
+string buscarCliente(Tienda* tienda,int cedula){
+    if(tienda->clientes!=nullptr){
+        int posicion;
+        for(int i=0;i<tienda->cantidadClientes;i++){
+            if(tienda->clientes[i].cedula){
+                posicion=i;
+                break;
+            }
+        }
+        return tienda->clientes[posicion].nombre,tienda->clientes[posicion].dirreccion;
+    }
+
 }
 void editarProveedor(Tienda* tienda, int idProveedor){
     //Funcion para editar algun aspecto del producto
@@ -811,8 +819,14 @@ void eliminarProducto(Tienda* tienda,int id){
         cout<<"la tienda no ha sido creada"<<endl;
     }
 }
-void compra(Tienda){
-    
+void compra(Tienda* tienda){
+    int cedu;
+    cout<<"Inserte la cedula del cliente";
+    cin>>cedu;
+    buscarCliente(tienda,cedu);
+}
+void venta(Tienda* tienda){
+
 }
 int main(){
     Tienda tienda;
