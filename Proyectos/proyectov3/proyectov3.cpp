@@ -394,8 +394,7 @@ void Crearproveedor(Tienda* tienda){
                 break;
             }
         }
-    }
-}
+   
             // Nombre
             cout<<"Ingrese el nombre del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
@@ -425,11 +424,10 @@ void Crearproveedor(Tienda* tienda){
                     if(!puntoEncontrado){
                         cout<<"Correo invalido. Debe contener un punto (.) después del @."<<endl;
                         strncpy(temp.correo, "", sizeof(temp.correo)-1);
+                        break;
                     }
-                    break;
+                    
                 }
-            }
-        }
             // Telefono
             cout<<"Ingrese el telefono del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
@@ -458,7 +456,8 @@ void Crearproveedor(Tienda* tienda){
             tienda->clientes[tienda->cantidadClientes] = temp;
             tienda->cantidadClientes++;
         }
-
+ }
+}
         void Editarcliente (Tienda* tienda, int cedula){
             // Implementar función para editar los datos de un cliente existente
             for(int i=0;i<tienda->cantidadClientes;i++){
@@ -1385,7 +1384,9 @@ int main(){
                         listarClientes(&tienda);
                         break;
                     case 5:
-                        eliminarCliente(&tienda, 1); // Example ID for deletion
+                        cout<<"Introduzca el id del cliente que quiere borrar";
+                        cin>>id;
+                        eliminarCliente(&tienda, id); // Example ID for deletion
                         break;
                     case 0:
                         cout<<"Volviendo al menú principal..."<<endl;
