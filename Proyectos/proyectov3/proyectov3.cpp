@@ -821,7 +821,7 @@ void editarProducto(Tienda* tienda, int idProducto){
 }
 
 
-void compra(Tienda* tienda){
+void venta(Tienda* tienda){
     Producto* p;
     int cedu;
     char respuesta;
@@ -891,8 +891,12 @@ void compra(Tienda* tienda){
 
     }
 }
-void venta(Tienda* tienda){
-
+void compra(Tienda* tienda){
+    Producto* p;
+    int idprov;
+    char respuesta;
+    string nombre,direccion;
+    cout<<"Inserte el id del proveedor "
 }
 int main(){
      Tienda tienda;
