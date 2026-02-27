@@ -423,6 +423,24 @@ void buscarProducto(Tienda* tienda){
         }
     }
     
+    void listarProductos(Tienda* tienda){
+        if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
+        if(tienda->productos==nullptr || tienda->cantidadProductos<=0){ cout<<"No hay productos registrados."<<endl; return; }
+        cout<<"Listado de productos:\n";
+        for(int i=0;i<tienda->cantidadProductos;i++){
+            Producto& p = tienda->productos[i];
+            cout<<"ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<"\n";
+        }
+
+    void listarProveedores(Tienda* tienda){
+        if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
+        if(tienda->proveedores==nullptr || tienda->cantidadProveedores<=0){ cout<<"No hay proveedores registrados."<<endl; return; }
+        cout<<"Listado de proveedores:\n";
+        for(int i=0;i<tienda->cantidadProveedores;i++){
+            Proveedor& p = tienda->proveedores[i];
+            cout<<"ID: "<<p.id<<" | Nombre: "<<p.nombre<<"\n";
+        }
+
 }
 void buscarProveedor(Tienda* tienda){
     // Implementar búsqueda por ID, nombre, código o proveedor
