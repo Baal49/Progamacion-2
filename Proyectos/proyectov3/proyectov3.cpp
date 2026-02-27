@@ -845,7 +845,7 @@ int main(){
                 cout <<"4. Actualizar stock manualmente"<<endl;
                 cout <<"5. Listar todos los productos"<<endl;
                 cout <<"6. Eliminar producto"<<endl;
-                 cout <<"0. Volver al menú principal"<<endl;
+                cout <<"0. Volver al menú principal"<<endl;
                  cin>>opcion;
                  switch(opcion){
                     case 1:
