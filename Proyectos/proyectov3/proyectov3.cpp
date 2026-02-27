@@ -935,8 +935,8 @@ int main(){
                 cout <<"4. Listar clientes"<<endl;
                 cout <<"5. Eliminar cliente"<<endl;
                 cout <<"0. Volver al menú principal"<<endl;
-                cout<<"Seleccione una opción: ";
-                cin>>opcion;
+                cout <<"Seleccione una opción: ";
+                cin  >>opcion;
                 
                 switch(opcion){
                     case 1:
