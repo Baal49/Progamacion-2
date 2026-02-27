@@ -1089,22 +1089,29 @@ void editarProducto(Tienda* tienda, int idProducto){
 void venta(Tienda* tienda){
     Producto* p;
     int cedu;
-    char respuesta;
+    string input;
+    string respuesta;
     string nombre,direccion;
     cout<<"Inserte la cedula del cliente";
     cin>>cedu;
     nombre,direccion=buscarCliente(tienda,cedu);
-    if(nombre=="no existe ese cliente"){
+    if(direccion=="no existe ese cliente"||nombre=="no existe ese cliente"){
         cout<<nombre<<" desea registrarlo?"<<endl;
         cout<<"Introduzca S para registrarlo o N para cancelar";
         cin>>respuesta;
-        if(respuesta=='S'||respuesta=='s'){
-             //crearCliente(tienda);
+        if(respuesta=="S"||respuesta=="s"){
+           
+           
+            Crearcliente(tienda);
         }
-        else{
+        else if(respuesta=="CANCELAR" || respuesta=="0") {
+            cout<<"Creación cancelada."<<endl; return; 
             return ;
         }
     }
+        
+    
+
     else{
         cout<<"Nombre del cliente: "<<nombre<<" Cedula: "<<cedu<<" Direccion: "<<direccion;
         int opt,id,sub,cantp=1;
@@ -1151,7 +1158,6 @@ void venta(Tienda* tienda){
         tienda->transacciones[tienda->siguienteIdTransaccion-1].idRelacionado=cedu;
         tienda->transacciones[tienda->siguienteIdTransaccion-1].total=sub;
         cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
-        string input;
         strncpy(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha, input.c_str(), sizeof(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha)-1);
 
     }
