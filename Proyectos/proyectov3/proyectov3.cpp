@@ -4,8 +4,15 @@
 #include <string>
 #include <cstring>
 #include <iomanip>
+#include <fstream>
 using namespace std;
 
+struct archivoHeader{
+    int cantidadRegistros;      // Total histórico de registros
+    int proximoID;              // Siguiente ID a asignar (Autoincremental)
+    int registrosActivos;       // Registros que no están marcados como eliminados
+    int version;                // Control de versión del archivo
+};
 struct Producto {
     int id;                    // Identificador único (autoincremental)
     char codigo[20];           // Código del producto (ej: "PROD-001")
@@ -90,7 +97,7 @@ void inicializarTienda(Tienda* tienda){
 
     // Transacciones
     tienda->capacidadTransacciones = cap;
-    tienda->transacciones = new Transaccion[tienda->capacidadTransacciones];
+    tienda->transacciones = new Transaccion[cap];
     //Clientes
     tienda->capacidadClientes=cap;
     tienda->clientes=new Cliente[cap];
@@ -213,7 +220,7 @@ void Crearproductos(Tienda* tienda){
         while(!proveedorValido){
             cout<<"Ingrese el id del proveedor del producto (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
-            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+            if(input=="CANCELAR" ||input=="cancelar" || input=="Cancelar"|| input=="0"){ cout<<"Creación cancelada."<<endl; return; }
             int idProv = 0;
              idProv = stoi(input); 
             try{
@@ -346,8 +353,9 @@ void Crearproveedor(Tienda* tienda){
     }
 }
     void Crearcliente(Tienda* tienda){
-        if(tienda->clientes==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
+        if(tienda->clientes!=nullptr){ 
         string input;
+        bool cedulaExiste=1;
         int cantidad = 0;
         cout<<"Ingrese la cantidad de clientes a crear (o 'CANCELAR'/'0' para cancelar): ";
         while(true){
@@ -362,13 +370,13 @@ void Crearproveedor(Tienda* tienda){
             Cliente temp{};
 
             // Cedula (única)
-            while(true){
+            while(cedulaExiste){
                 cout<<"Ingrese la cedula del cliente (o 'CANCELAR' para cancelar): ";
                 if(!getline(cin, input)) return;
                 if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
                 if(input.empty()){ cout<<"La cedula no puede estar vacía."<<endl; continue; }
                 // Validar que la cedula no exista ya
-                bool cedulaExiste = false;
+                 cedulaExiste = false;
                 for(int i=0;i<tienda->cantidadClientes;i++){
                     if(tienda->clientes[i].cedula == stoi(input)){
                         cedulaExiste = true;
@@ -382,7 +390,7 @@ void Crearproveedor(Tienda* tienda){
                     }
                 }
                 if(cedulaExiste){ cout<<"La cedula ya existe. Ingrese otra."<<endl; continue; }
-                temp.cedula = stoi(input);
+                tienda->clientes[i].cedula = stoi(input);
                 break;
             }
         }
@@ -433,7 +441,7 @@ void Crearproveedor(Tienda* tienda){
                     strncpy(temp.telefono, "", sizeof(temp.telefono)-1);
                     break;
                 }
-
+            }
              // Dirreccion
             cout<<"Ingrese la dirreccion del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
@@ -449,6 +457,7 @@ void Crearproveedor(Tienda* tienda){
             // Agregar cliente temporal al array de clientes
             tienda->clientes[tienda->cantidadClientes] = temp;
             tienda->cantidadClientes++;
+            cout<< tienda->clientes[tienda->cantidadClientes].cedula<<tienda->clientes[tienda->cantidadClientes].nombre<< endl;
         }
  
 
@@ -808,32 +817,29 @@ void editarProveedor(Tienda* tienda, int idProveedor){
     }while(respuesta!=0&&respuesta!=7);  
 }
 
-Proveedor buscarProveedor(Tienda* tienda,int id,string nombre,int opcion){
+Proveedor* buscarProveedor(Tienda* tienda,int id,string nombre,int opcion){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
     if(tienda->proveedores!=nullptr){
     if(opcion==1){
     bool encontrado =0;
     cin.ignore(numeric_limits<streamsize>::max(),'\n');
-    Proveedor* p=nullptr;
-    cout <<"ingrese el ID del producto a buscar: ";
-    string input;
-    getline(cin,input);
+    Proveedor* p;
     int idBuscado = 0;
-    try{ idBuscado = stoi(input); }
+    try{ idBuscado = id; }
     catch(...){ cout<<"ID invalido."<<endl;  }
     for(int i=0;i<tienda->cantidadProveedores;i++){
         cout<<"id: "<<tienda->proveedores[i].id<<endl;
-        if( tienda->proveedores[i].id== idBuscado){
-            Proveedor& p = tienda->proveedores[0];
-            cout<<"proveedor encontrado: ID: "<<p.id<<" | Nombre: "<<p.nombre<<endl;
+        if( tienda->proveedores[i].id== id){
+             *p = tienda->proveedores[i];
+            cout<<"proveedor encontrado: ID: "<<p->id<<" | Nombre: "<<p->nombre<<endl;
             encontrado=1;
             return p;
         }
     }
     if(!encontrado){
         cout<<"Proveedor no encontrado."<<endl;
-        return *p;
+        return nullptr;
     }
     }
     else if(opcion==2){
@@ -872,22 +878,29 @@ Proveedor buscarProveedor(Tienda* tienda,int id,string nombre,int opcion){
 }
 }
 string buscarCliente(Tienda* tienda,int cedula){
+    cout<<"Si entre aqui"<<endl;
     if(tienda->clientes!=nullptr){
         int posicion=-1;
         for(int i=0;i<tienda->cantidadClientes;i++){
-            if(tienda->clientes[i].cedula){
+            cout<<"Hoaa"<<endl;
+            if(tienda->clientes[i].cedula==cedula){
+                cout<<"adios"<<endl;
                 posicion=i;
                 break;
             }
         }
         if(posicion!=-1){
+            cout<<"nombre del cliente: "<<tienda->clientes[posicion].nombre;
             return tienda->clientes[posicion].nombre,tienda->clientes[posicion].dirreccion;
         }
         else{
-            return "no existe ese cliente";
+            
         }
     }
-
+    else{
+        cout<<"Tienda es null ptr:"<<tienda->clientes[0].cedula;
+        return "no existe ese cliente";
+    }
 }
 
 void eliminarProducto(Tienda* tienda,int id){
@@ -1170,7 +1183,7 @@ void compra(Tienda* tienda){
     string nombre,direccion;
     cout<<"Inserte el id del proveedor: ";
     cin>>idprov;
-    *prov=buscarProveedor(tienda,idprov,"",1);
+    *prov=*buscarProveedor(tienda,idprov,"",1);
     if(nombre=="no existe ese proveedor"){
         cout<<nombre<<" desea registrarlo?"<<endl;
         cout<<"Introduzca S para registrarlo o N para cancelar";
@@ -1192,6 +1205,8 @@ void compra(Tienda* tienda){
             cout<<"introduce el id del producto que se va a comprar: ";
             cin>>id;
             *p=buscarProducto(tienda,id,"",1);
+            //if(p->precio>0){
+            
             cout<<"El precio del producto es: "<<p->precio<<endl;
             do{
             cout<<"introduce la cantidad del producto que se va a comprar: ";
@@ -1231,8 +1246,11 @@ void compra(Tienda* tienda){
         string input;
         strncpy(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha, input.c_str(), sizeof(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha)-1);
 
-    }
+    
+
 }
+}
+
 int main(){
      Tienda tienda;
     strcpy(tienda.nombre, "Farmacia pipo");
@@ -1242,7 +1260,7 @@ int main(){
         int opcion;
     do{
         int opt=0,id;
-    string nombre;
+    string nombre,direccion;
    
         cout <<"╔═══════════════════════════════════════════╗"<<endl;
         cout <<"║   SISTEMA DE GESTIÓN DE INVENTARIO        ║"<<endl;
@@ -1350,7 +1368,7 @@ int main(){
                             cout<<"ingrese el nombre del proveedor a buscar";
                             getline(cin,nombre);
                         }
-                        buscarProveedor(&tienda,id,nombre,opcion);
+                        *buscarProveedor(&tienda,id,nombre,opcion);
                         break;
                     case 3:
                         cout<<"ingrese el id del del producto que se quiere editar";
@@ -1393,7 +1411,7 @@ int main(){
                     case 2:
                         cout<<"Inserte la cedula del cliente";
                         cin>>id;
-                        buscarCliente(&tienda,id);
+                        id,nombre,direccion=buscarCliente(&tienda,id);
                         break;
                     case 3:
                         cout<<"Inserte la cedula del cliente";
@@ -1401,7 +1419,7 @@ int main(){
                         Editarcliente(&tienda,id);
                         break;
                     case 4:
-                       // listarClientes(&tienda);
+                        //listarClientes(&tienda);
                         break;
                     case 5:
                        /* cout<<"Introduzca el id del cliente que quiere borrar";
@@ -1450,7 +1468,6 @@ int main(){
                     default:
                         cout<<"Opción inválida. Intente nuevamente."<<endl;
                 }
-                compra(&tienda);
                 break;
             case 5:
                 cout<<"Saliendo del programa..."<<endl;
