@@ -6,36 +6,20 @@
 #include <iomanip>
 #include <fstream>
 using namespace std;
-
-struct archivoHeader{
-    int cantidadRegistros;      // Total histórico de registros
-    int proximoID;              // Siguiente ID a asignar (Autoincremental)
-    int registrosActivos;       // Registros que no están marcados como eliminados
-    int version;                // Control de versión del archivo
-};
-struct Producto {
-    int id;                    // Identificador único (autoincremental)
-    char codigo[20];           // Código del producto (ej: "PROD-001")
-    char nombre[100];          // Nombre del producto
-    char descripcion[200];     // Descripción del producto
-    int idProveedor;           // ID del proveedor asociado
-    float precio=0;            // Precio unitario
-    int stock=0;               // Cantidad en inventario
-    char fechaRegistro[11];    // Formato: YYYY-MM-DD
-    char fechavencimiento[11]; //Formato: YYYY-MM-DD (opcional)
-};
-
-struct Proveedor {
+class Proveedor {
+    public:
     int id;
     char nombre[100];
     // otros campos omitidos para brevedad
 };
-struct Productoventa{
+class Productoventa{
+    public:
     int id;
     int cantidad;
     int preciounidad;
 };
-struct Transaccion {
+class Transaccion {
+    public:
     int id;
     int tipo;
     Productoventa* productos=nullptr ;
@@ -46,7 +30,8 @@ struct Transaccion {
     char fecha[11];
     char descripcion[200];//opcional
 };
-struct Cliente{
+class Cliente{
+public:
  int cedula;
  char nombre[100];
  char correo[100];
@@ -54,13 +39,14 @@ struct Cliente{
  char dirreccion[200];
  char fecharegitro[11]; //formato:YYYY-MM-DD
 };
-struct Tienda {
+class Tienda {
+    public:
     char nombre[100];
     char rif[20];
 
-    Producto* productos = nullptr;
+    /*Producto* productos = nullptr;
     int capacidadProductos = 0; // capacidad actual del arreglo
-    int cantidadProductos = 0;  // cuántos productos están registrados
+    int cantidadProductos = 0;  // cuántos productos están registrados*/
 
     Proveedor* proveedores = nullptr;
     int capacidadProveedores = 0;
@@ -78,66 +64,29 @@ struct Tienda {
     int siguienteIdProveedor = 1;
     int siguienteIdTransaccion = 1;
 };
+struct archivoHeader{
+    int cantidadRegistros;      // Total histórico de registros
+    int proximoID;              // Siguiente ID a asignar (Autoincremental)
+    int registrosActivos;       // Registros que no están marcados como eliminados
+    int version;                // Control de versión del archivo
+};
+class Producto {
+    public:
+    int id;                    // Identificador único (autoincremental)
+    char codigo[20];           // Código del producto (ej: "PROD-001")
+    char nombre[100];          // Nombre del producto
+    char descripcion[200];     // Descripción del producto
+    int idProveedor;           // ID del proveedor asociado
+    float precio=0;            // Precio unitario
+    int stock=0;               // Cantidad en inventario
+    char fechaRegistro[11];    // Formato: YYYY-MM-DD
+    char fechavencimiento[11]; //Formato: YYYY-MM-DD (opcional)
 
-void inicializarTienda(Tienda* tienda){
-    if(!tienda) return;
-    cin.ignore(numeric_limits<streamsize>::max(),'\n');
-    cout<<"Ingrese el RIF de la tienda: ";
-    cin.getline(tienda->rif,20);
-
-    // Productos
-    int cap = 5;
-    tienda->capacidadProductos = cap;
-    tienda->productos = new Producto[tienda->capacidadProductos];
-    tienda->siguienteIdProducto = 1;
-
-    // Proveedores (mínimo 1 para permitir crear productos que referencien proveedores)
-    tienda->capacidadProveedores = cap;
-    tienda->proveedores = new Proveedor[tienda->capacidadProveedores];
-
-    // Transacciones
-    tienda->capacidadTransacciones = cap;
-    tienda->transacciones = new Transaccion[cap];
-    //Clientes
-    tienda->capacidadClientes=cap;
-    tienda->clientes=new Cliente[cap];
-}
-
-
-// Busca transacciones por ID de producto usando un arreglo dinámico de punteros
-void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
-    if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
-    if(tienda->transacciones==nullptr || tienda->cantidadTransacciones<=0){ cout<<"No hay transacciones registradas."<<endl; return; }
-
-    Transaccion** matches = new Transaccion*[tienda->cantidadTransacciones];
-    int encontrados = 0;
-    for(int i=0;i<tienda->cantidadTransacciones;i++){
-        if(tienda->transacciones[i].productos[i].id == idProducto){ matches[encontrados++] = &tienda->transacciones[i]; }
-    }
-    if(encontrados==0){ cout<<"No se encontraron transacciones para el producto con ID "<<idProducto<<"."<<endl; delete[] matches; return; }
-    cout<<"Se encontraron "<<encontrados<<" transaccion(es) para el producto "<<idProducto<<":\n";
-    for(int i=0;i<encontrados;i++){
-        Transaccion* t = matches[i];
-        cout<<"ID: "<<t->id<<" | Tipo: "<<t->tipo<<" | Cantidad: "<<t->cantidad
-            <<" | Precio unitario: "<<t->precioUnitario<<" | Total: "<<t->total
-            <<" | Fecha: "<<t->fecha<<"\n";
-    }
-    delete[] matches;
-}
-
-
-bool codigoDuplicado(Tienda* tienda, const string& codigo){
-    for(int i=0;i<tienda->cantidadProductos;i++){
-        if(strncmp(tienda->productos[i].codigo, codigo.c_str(), sizeof(tienda->productos[i].codigo))==0) return true;
-    }
-    return false;
-}
-
-void Crearproductos(Tienda* tienda,fstream& archivo){
-    if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
+    void Crearproductos(archivoHeader* proveedores,fstream& archivoproducto,archivoHeader* tienda,fstream& archivoproveedor){
     string input;
     int cantidad = 0;
-    cout<<"Ingrese la cantidad de productos a crear (o 'CANCELAR'/'0' para cancelar): ";
+    if(archivoproducto.is_open()){
+        cout<<"Ingrese la cantidad de productos a crear (o 'CANCELAR'/'0' para cancelar): ";
     while(true){
         if(!getline(cin, input)) return;
         if(input=="CANCELAR" || input=="0") { cout<<"Creación cancelada."<<endl; return; }
@@ -155,7 +104,7 @@ void Crearproductos(Tienda* tienda,fstream& archivo){
             if(!getline(cin, input)) return;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
             if(input.empty()){ cout<<"El codigo no puede estar vacío."<<endl; continue; }
-            if(codigoDuplicado(tienda, input)) { cout<<"Codigo ya existe. Ingrese otro."<<endl; continue; }
+            //if(codigoDuplicado(tienda, input)) { cout<<"Codigo ya existe. Ingrese otro."<<endl; continue; }
             strncpy(temp.codigo, input.c_str(), sizeof(temp.codigo)-1);
             break;
         }
@@ -181,10 +130,13 @@ void Crearproductos(Tienda* tienda,fstream& archivo){
             int idProv = 0;
              idProv = stoi(input); 
             try{
-                for(int i=0;i<tienda->cantidadProveedores;i++){
-                if(tienda->proveedores[i].id == idProv){ proveedorValido = true;  }
-
-            }
+                Proveedor p;
+                while(archivoproveedor.read(reinterpret_cast<char*>(&p),sizeof(p))){
+                    if(p.id==idProv){
+                        proveedorValido=true;
+                        break;
+                    }
+                }
             }
             catch(...){
                 if(!proveedorValido) cout<<"El id del proveedor no existe, intentelo nuevamente."<<endl;
@@ -231,7 +183,7 @@ void Crearproductos(Tienda* tienda,fstream& archivo){
 
         }
         // Asignar ID autoincremental
-        temp.id = tienda->siguienteIdProducto++;
+        temp.id = tienda->proximoID++;
 
         // Confirmación
         cout<<"\nResumen del producto:"<<endl;
@@ -241,17 +193,146 @@ void Crearproductos(Tienda* tienda,fstream& archivo){
         if(!getline(cin,resp)) return;
         if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
             // si el arreglo está lleno, redimensionar duplicando capacidad
-            if(tienda->cantidadProductos >= tienda->capacidadProductos){
+           /*if(tienda->cantidadRegistros >= tienda->capacidadProductos){
                 //redimensionarProductos(tienda);
                 cout<<"Arreglo de productos redimensionado a capacidad "<<tienda->capacidadProductos<<"."<<endl;
-            }
-            tienda->productos[tienda->cantidadProductos++] = temp;
+            }*/
+            archivoproducto.seekg((tienda->cantidadRegistros+1)*sizeof(Producto),ios::beg);
+            archivoproducto.write(reinterpret_cast<char*>(&temp),sizeof(Producto)) ;
             cout<<"Producto guardado."<<endl;
         } else {
             cout<<"Producto descartado por el usuario."<<endl;
         }
     }
+    }
+    
 }
+Producto buscarProducto(archivoHeader* productosheader,fstream* archivo,int id,string nombre, int opcion){
+    // Implementar búsqueda por ID, nombre, código o proveedor
+    // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
+    Producto p;
+    int posicion,i=0;
+    if(opcion==1){
+    bool encontrado =0;
+    try{ id; }
+    catch(...){ cout<<"ID invalido."<<endl;  }
+    while(archivo->read(reinterpret_cast<char*>(&p),sizeof(p))){
+        if(p.id == id){
+            posicion=i;
+            cout<<"Producto encontrado: ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<"\n";
+            encontrado=1;  
+            break;
+        }
+        else{
+            i++;
+        }
+    }
+    if(!encontrado){
+        cout<<"Producto no encontrado."<<endl;
+    }
+    else{
+        return p;
+    }
+    }
+    else if(opcion==2){
+        string nombre;
+        cout<<"introduce el nombre del producto: ";
+        getline(cin,nombre);
+        int* idencontrados=new int[productosheader->cantidadRegistros];
+        int x=0;
+        while(archivo->read(reinterpret_cast<char*>(&p),sizeof(p))){
+            string str(p->nombre);
+            if(str.find(nombre)){
+                idencontrados[x]=p.id;
+                x++;
+            }
+        }
+        if(x==0){
+            cout<<"no se encontro ningun producto con ese nombre"<<endl;
+        }
+        else{
+            int opcion2;
+            Producto* p2= new Producto[productosheader->cantidadRegistros];
+            cout<<"se encontraron "<<x<<" coincidencias :"<<endl;
+            for(int i=0;i<x;i++){
+                while(archivo->read(reinterpret_cast<char*>(&p),sizeof(p))){
+                    if(p.id==idencontrados[i]){
+                        cout<<"Producto "<<i+1<<": id:"<<p.id<<" nombre: "<<p.nombre<<" codigo: "<<p.codigo<<" precio: "<<p.precio<<endl;
+                    }
+                }   
+            }
+            do{
+            cout<<"Introduzca el numero del producto para seleccionarlo";
+            cin>>opcion2;
+            opcion2--;
+            }while(opcion2<0||opcion2>x);
+            return tienda->productos[opcion2];
+    }
+}
+return tienda->productos[posicion];
+}
+bool codigoDuplicado(archivoHeader* tienda,fstream* archivo ,const string& codigo){
+    Producto p;
+    while(archivo->read(reinterpret_cast<char*>(&p),sizeof(p))){
+        if(strncmp(p.codigo, codigo.c_str(), sizeof(p.codigo))==0) return true;
+    }
+    return false;
+}
+};
+
+
+
+
+void inicializarTienda(Tienda* tienda){
+    if(!tienda) return;
+    cin.ignore(numeric_limits<streamsize>::max(),'\n');
+    cout<<"Ingrese el RIF de la tienda: ";
+    cin.getline(tienda->rif,20);
+
+    // Productos
+    int cap = 5;
+    /*tienda->capacidadProductos = cap;
+    tienda->productos = new Producto[tienda->capacidadProductos];
+    tienda->siguienteIdProducto = 1;*/
+
+    // Proveedores (mínimo 1 para permitir crear productos que referencien proveedores)
+    tienda->capacidadProveedores = cap;
+    tienda->proveedores = new Proveedor[tienda->capacidadProveedores];
+
+    // Transacciones
+    tienda->capacidadTransacciones = cap;
+    tienda->transacciones = new Transaccion[cap];
+    //Clientes
+    tienda->capacidadClientes=cap;
+    tienda->clientes=new Cliente[cap];
+}
+
+
+// Busca transacciones por ID de producto usando un arreglo dinámico de punteros
+void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
+    if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
+    if(tienda->transacciones==nullptr || tienda->cantidadTransacciones<=0){ cout<<"No hay transacciones registradas."<<endl; return; }
+
+    Transaccion** matches = new Transaccion*[tienda->cantidadTransacciones];
+    int encontrados = 0;
+    for(int i=0;i<tienda->cantidadTransacciones;i++){
+        if(tienda->transacciones[i].productos[i].id == idProducto){ matches[encontrados++] = &tienda->transacciones[i]; }
+    }
+    if(encontrados==0){ cout<<"No se encontraron transacciones para el producto con ID "<<idProducto<<"."<<endl; delete[] matches; return; }
+    cout<<"Se encontraron "<<encontrados<<" transaccion(es) para el producto "<<idProducto<<":\n";
+    for(int i=0;i<encontrados;i++){
+        Transaccion* t = matches[i];
+        cout<<"ID: "<<t->id<<" | Tipo: "<<t->tipo<<" | Cantidad: "<<t->cantidad
+            <<" | Precio unitario: "<<t->precioUnitario<<" | Total: "<<t->total
+            <<" | Fecha: "<<t->fecha<<"\n";
+    }
+    delete[] matches;
+}
+
+
+
+
+
 void Crearproveedor(Tienda* tienda){
     if(tienda->proveedores==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
     string input;
@@ -274,7 +355,7 @@ void Crearproveedor(Tienda* tienda){
             if(!getline(cin, input)) return;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
             if(input.empty()){ cout<<"El codigo no puede estar vacío."<<endl; continue; }
-            if(codigoDuplicado(tienda, input)) { cout<<"Codigo ya existe. Ingrese otro."<<endl; continue; }
+            //if(codigoDuplicado(tienda, input)) { cout<<"Codigo ya existe. Ingrese otro."<<endl; continue; }
             temp.id=stoi(input);
             break;
         }
@@ -574,67 +655,7 @@ void Crearproveedor(Tienda* tienda){
     }
 
 
-Producto buscarProducto(Tienda* tienda,int id,string nombre, int opcion){
-    // Implementar búsqueda por ID, nombre, código o proveedor
-    // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
-    
-    int posicion;
-    if(opcion==1){
-    bool encontrado =0;
-    try{ id; }
-    catch(...){ cout<<"ID invalido."<<endl;  }
-    for(int i=0;i<tienda->cantidadProductos;i++){
-        if(tienda->productos[i].id == id){
-            posicion=i;
-            Producto& p = tienda->productos[i];
-            cout<<"Producto encontrado: ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<"\n";
-            encontrado=1;
-            
-        }
-    }
-    if(!encontrado){
-        cout<<"Producto no encontrado."<<endl;
-    }
-    else{
-        return tienda->productos[posicion];
-    }
-    }
-    else if(opcion==2){
-        string nombre;
-        cout<<"introduce el nombre del producto: ";
-        getline(cin,nombre);
-        int* idencontrados=new int[tienda->cantidadProductos];
-        int x=0;
-        for(int i=0;i<tienda->cantidadProductos;i++){
-            string str(tienda->productos->nombre);
-            if(str.find(nombre)){
-                idencontrados[x]=tienda->productos[i].id;
-                x++;
-            }
-        }
-        if(x==0){
-            cout<<"no se encontro ningun producto con ese nombre"<<endl;
-        }
-        else{
-            int opcion2;
-            cout<<"se encontraron "<<x<<" coincidencias :"<<endl;
-            for(int i=0;i<x;i++){
-                for(int j=0;j<tienda->cantidadProductos;j++){
-                    if(tienda->productos[j].id==idencontrados[i]){
-                        cout<<"Producto "<<i+1<<": id:"<<tienda->productos[j].id<<" nombre: "<<tienda->productos[j].nombre<<" codigo: "<<tienda->productos[j].codigo<<" precio: "<<tienda->productos[j].precio<<endl;
-                    }
-                }   
-            }
-            do{
-            cout<<"Introduzca el numero del producto para seleccionarlo";
-            cin>>opcion2;
-            opcion2--;
-            }while(opcion2<0||opcion2>x);
-            return tienda->productos[opcion2];
-    }
-}
-return tienda->productos[posicion];
-}
+
 
     void listarProductos(Tienda* tienda){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
@@ -1247,7 +1268,7 @@ int main(){
                  cin>>opcion;
                  switch(opcion){
                     case 1:
-                        Crearproductos(&tienda,archivoproductos);
+                        tienda.productos->Crearproductos(&tienda,archivoproductos);
                         break;
                     case 2:
                     
