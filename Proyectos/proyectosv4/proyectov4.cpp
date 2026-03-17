@@ -241,7 +241,7 @@ Producto buscarProducto(archivoHeader* productosheader,fstream* archivo,int id,s
         int* idencontrados=new int[productosheader->cantidadRegistros];
         int x=0;
         while(archivo->read(reinterpret_cast<char*>(&p),sizeof(p))){
-            string str(p->nombre);
+            string str(p.nombre);
             if(str.find(nombre)){
                 idencontrados[x]=p.id;
                 x++;
@@ -257,6 +257,7 @@ Producto buscarProducto(archivoHeader* productosheader,fstream* archivo,int id,s
             for(int i=0;i<x;i++){
                 while(archivo->read(reinterpret_cast<char*>(&p),sizeof(p))){
                     if(p.id==idencontrados[i]){
+                        p2[x]=p;
                         cout<<"Producto "<<i+1<<": id:"<<p.id<<" nombre: "<<p.nombre<<" codigo: "<<p.codigo<<" precio: "<<p.precio<<endl;
                     }
                 }   
@@ -266,10 +267,10 @@ Producto buscarProducto(archivoHeader* productosheader,fstream* archivo,int id,s
             cin>>opcion2;
             opcion2--;
             }while(opcion2<0||opcion2>x);
-            return tienda->productos[opcion2];
+            return p2[opcion2];
     }
 }
-return tienda->productos[posicion];
+//return tienda->productos[posicion];
 }
 bool codigoDuplicado(archivoHeader* tienda,fstream* archivo ,const string& codigo){
     Producto p;
@@ -657,10 +658,11 @@ void Crearproveedor(Tienda* tienda){
 
 
 
-    void listarProductos(Tienda* tienda){
-        if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
-        if(tienda->productos==nullptr || tienda->cantidadProductos<=0){ cout<<"No hay productos registrados."<<endl; return; }
-                 
+    void listarProductos(archivoHeader* header, fstream archivoproductos,fstream archivoproveedores){
+        if(header==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
+        if(header->cantidadRegistros<=0){ cout<<"No hay productos registrados."<<endl; return; }
+        Producto p;     
+        Proveedor prov;
         // cabecera del cuadro
         cout<<"╔══════════════════════════════════════════════════════════════════════════╗\n";
         cout<<"║                         LISTADO DE PRODUCTOS                             ║\n";
@@ -668,9 +670,9 @@ void Crearproveedor(Tienda* tienda){
         cout<<"║ ID ║  Código   ║     Nombre       ║  Proveedor   ║ Precio║ Stock  ║ Fecha║\n";
         cout<<"╠════╬═══════════╬══════════════════╬══════════════╬═══════╬════════╬══════╣\n";
 
-        for(int i=0;i<tienda->cantidadProductos;i++){
-            Producto& p = tienda->productos[i];
+        while(archivoproductos.read(reinterpret_cast<char*>(&p),sizeof(p))){
             const char* provName = "N/A";
+            while(archivoproveedores.read(reinterpret_cast<char*))
             for(int j=0;j<tienda->cantidadProveedores;j++){
                 if(tienda->proveedores[j].id == p.idProveedor){
                     provName = tienda->proveedores[j].nombre;
