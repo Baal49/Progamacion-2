@@ -214,7 +214,7 @@ void editarProveedor(Tienda* tienda, int idProveedor){
     } while(respuesta != 0);
 }
 
-Proveedor* buscarProveedor(Tienda* tienda,int id,string nombre,int opcion){
+Proveedor* buscarProveedor(archivoHeader proveedor,fstream archivo,int id,string nombre,int opcion){
     const char* ruta = "proveedores.bin";
     fstream archivo(ruta, ios::in | ios::binary);
     if(!archivo){
@@ -1240,7 +1240,7 @@ void compra(Tienda* tienda){
     string nombre,direccion;
     cout<<"Inserte el id del proveedor: ";
     cin>>idprov;
-    *prov=*buscarProveedor(tienda,idprov,"",1);
+    prov=prov->buscarProveedor(&tienda,idprov,"",1);
     if(nombre=="no existe ese proveedor"){
         cout<<nombre<<" desea registrarlo?"<<endl;
         cout<<"Introduzca S para registrarlo o N para cancelar";
