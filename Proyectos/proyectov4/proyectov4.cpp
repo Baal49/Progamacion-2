@@ -19,6 +19,7 @@ class Proveedor {
     char nombre[100];
     // otros campos omitidos para brevedad
     void Crearproveedor(archivoHeader& proveedor, fstream* archivo){
+    cin.ignore(numeric_limits<streamsize>::max(),'\n');
     if(!archivo){ cout<<"El archivo no se a podido abrir"<<endl; return; }
     string input;
     int cantidad = 0;
@@ -1400,6 +1401,7 @@ int main(){
    
     int opcion;
     do{
+        cin.ignore(numeric_limits<streamsize>::max(),'\n');
         int opt=0,id;
         string nombre,direccion;
    
@@ -1462,6 +1464,9 @@ int main(){
                         break;
                     case 5:
                         p.listarProductos(&archivoproductos,&archivoproveedores,productos,proveedores);
+                        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+                        opt=0;
+                        opcion=0;
                         break;
                     case 6:
                         cout<<"ingrese el id del del producto que se quiere borrar";
@@ -1627,9 +1632,6 @@ int main(){
             default:
                 cout<<"Opción inválida. Intente nuevamente."<<endl;
         }
-
-
-    cout<<"\n--- CREAR PRODUCTOS ---\n";
     /*Crearproductos(&tienda);
     buscarProducto(&tienda);*/
     // Ejemplo de búsqueda (si hay transacciones)
