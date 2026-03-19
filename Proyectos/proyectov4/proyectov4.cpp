@@ -15,7 +15,7 @@ struct archivoHeader{
 };
 class Proveedor {
     public:
-    int id;
+    int id=0;
     char nombre[100];
     // otros campos omitidos para brevedad
     void Crearproveedor(archivoHeader proveedor, fstream* archivo){
@@ -314,11 +314,11 @@ class Tienda {
 
 class Producto {
     public:
-    int id;                    // Identificador único (autoincremental)
+    int id=0;                    // Identificador único (autoincremental)
     char codigo[20];           // Código del producto (ej: "PROD-001")
     char nombre[100];          // Nombre del producto
     char descripcion[200];     // Descripción del producto
-    int idProveedor;           // ID del proveedor asociado
+    int idProveedor=0;           // ID del proveedor asociado
     float precio=0;            // Precio unitario
     int stock=0;               // Cantidad en inventario
     char fechaRegistro[11];    // Formato: YYYY-MM-DD
@@ -1304,22 +1304,46 @@ int main(){
     Cliente c;
     Transaccion t;
     fstream archivoproductos("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectosv4/productos.bin",ios::binary | ios::app);
+    if(archivoproductos){
+        cout<<"El archivo se abrio correctamente"<<endl;
+    }
     fstream archivoproveedores("Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::app);
     fstream archivoclientes("Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::app);
     fstream archivotransacciones("Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::app);
     archivoproductos.read(reinterpret_cast<char*>(&productos),sizeof(archivoHeader));
-    if(productos.cantidadRegistros==4096){
-        cout<<"No hay producto Registrados: "<<endl;
+    if(productos.cantidadRegistros==4096||productos.cantidadRegistros<=0){
+        cout<<"No hay producto Registrados: "<<productos.cantidadRegistros<<endl;
         productos.cantidadRegistros=0;
         productos.proximoID=0;
         productos.registrosActivos=0;
         productos.version=0;
+        archivoproductos.write(reinterpret_cast<char*>(&productos),sizeof(archivoHeader));
     }
     else{
         cout<<"La cantidad de productos es: "<<productos.cantidadRegistros<<endl;
     }
     archivoproveedores.read(reinterpret_cast<char*>(&proveedores),sizeof(archivoHeader));
+    if(proveedores.cantidadRegistros==4096||proveedores.cantidadRegistros<=0){
+        cout<<"No hay producto Registrados: "<<endl;
+        proveedores.cantidadRegistros=0;
+        proveedores.proximoID=0;
+        proveedores.registrosActivos=0;
+        proveedores.version;
+    }
+    else{
+        cout<<"La cantidad de provedores es: "<<proveedores.cantidadRegistros<<endl;
+    }
     archivoclientes.read(reinterpret_cast<char*>(&clientes),sizeof(archivoHeader));
+    if(clientes.cantidadRegistros>4096||clientes.cantidadRegistros<=0){
+        cout<<"No hay producto Registrados: "<<endl;
+        proveedores.cantidadRegistros=0;
+        proveedores.proximoID=0;
+        proveedores.registrosActivos=0;
+        proveedores.version;
+    }
+    else{
+        cout<<"La cantidad de provedores es: "<<clientes.cantidadRegistros<<endl;
+    }
     archivotransacciones.read(reinterpret_cast<char*>(&transacciones),sizeof(archivoHeader));
     int opcion;
     do{
