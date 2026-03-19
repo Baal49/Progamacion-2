@@ -18,7 +18,7 @@ class Proveedor {
     int id=0;
     char nombre[100];
     // otros campos omitidos para brevedad
-    void Crearproveedor(archivoHeader proveedor, fstream* archivo){
+    void Crearproveedor(archivoHeader& proveedor, fstream* archivo){
     if(!archivo){ cout<<"El archivo no se a podido abrir"<<endl; return; }
     string input;
     int cantidad = 0;
@@ -74,6 +74,8 @@ class Proveedor {
             proveedor.cantidadRegistros++;
             proveedor.registrosActivos++;
             proveedor.proximoID++;
+            cout<<"cantidadregistros: "<<proveedor.cantidadRegistros<<endl;
+            cout<<"registros activos: "<<proveedor.registrosActivos;
             
             cout<<"Proveedor guardado."<<endl;
         } else {
@@ -86,6 +88,7 @@ void listarProveedores(archivoHeader proveedor,fstream* archivoprov){
         if(proveedor.cantidadRegistros<=0){ cout<<"No hay proveedores registrados."<<endl; return; }
         cout<<"Listado de proveedores:\n";
         Proveedor p;
+        archivoprov->seekg(0,ios::beg);
         while(archivoprov->read(reinterpret_cast<char*>(&p),sizeof(Proveedor))){
             cout<<"ID: "<<p.id<<" | Nombre: "<<p.nombre<<"\n";
         }
@@ -1303,48 +1306,58 @@ int main(){
     Proveedor prov;
     Cliente c;
     Transaccion t;
-    fstream archivoproductos("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectosv4/productos.bin",ios::binary | ios::app);
-    if(archivoproductos){
-        cout<<"El archivo se abrio correctamente"<<endl;
-    }
-    fstream archivoproveedores("Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::app);
-    fstream archivoclientes("Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::app);
-    fstream archivotransacciones("Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::app);
+    fstream archivoproductos("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectosv4/productos.bin",ios::binary | ios::in|ios::out|ios::app);
+    archivoproductos.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/productos.bin", ios::binary | ios::out);
+    archivoproductos.close();
+    archivoproductos.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/productos.bin", ios::binary | ios::in | ios::out|ios::app);
+    fstream archivoproveedores("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::in|ios::out|ios::app);
+    archivoproveedores.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin", ios::binary | ios::out);
+    archivoproveedores.close();
+    archivoproveedores.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::in|ios::out|ios::app);
+    archivoproveedores.clear(); 
+    archivoproveedores.seekp(0, ios::beg);
+    archivoproveedores.seekg(0, ios::beg);
+    archivoproveedores.read(reinterpret_cast<char*>(&prov),sizeof(proveedores));
+    archivoproveedores.clear(); 
+    cout<<"El valor de proveedores es: "<<proveedores.cantidadRegistros<<endl;
+    cout << "Nueva posicion de lectura: " << archivoproveedores.tellg() <<"Nueva posicion de escritura: "<<archivoproveedores.tellp()<< endl;
+    fstream archivoclientes("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/clientes.bin",ios::binary|ios::in|ios::out|ios::app);
+    archivoclientes.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/clientes.bin",ios::binary|ios::out);
+    archivoclientes.close();
+    archivoclientes.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/clientes.bin",ios::binary|ios::in|ios::out|ios::app);
+     archivoclientes.clear(); 
+    archivoclientes.seekp(0, ios::beg);
+    archivoclientes.seekg(0, ios::beg);
+    archivoclientes.read(reinterpret_cast<char*>(&clientes),sizeof(archivoHeader));
+    archivoclientes.clear(); 
+    clientes.cantidadRegistros=0;
+    clientes.proximoID=0;
+    clientes.registrosActivos=0;
+    clientes.version=0;
+    cout<<"El valor de clientes es: "<<clientes.cantidadRegistros<<endl;
+    cout << "Nueva posicion de lectura: " << archivoclientes.tellg() <<"Nueva posicion de escritura: "<<archivoclientes.tellp()<< endl;
+    fstream archivotransacciones("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/transacciones.bin",ios::binary|ios::in|ios::out);
+    archivoproductos.clear(); 
+    archivoproductos.seekg(0, ios::beg);
     archivoproductos.read(reinterpret_cast<char*>(&productos),sizeof(archivoHeader));
-    if(productos.cantidadRegistros==4096||productos.cantidadRegistros<=0){
+    archivoproductos.clear(); 
+    if(productos.cantidadRegistros<=0){
+        archivoproductos.seekp(0, ios::beg);
+        cout << "Nueva posicion de escritura: " << archivoproductos.tellp() << endl;
         cout<<"No hay producto Registrados: "<<productos.cantidadRegistros<<endl;
         productos.cantidadRegistros=0;
         productos.proximoID=0;
         productos.registrosActivos=0;
         productos.version=0;
         archivoproductos.write(reinterpret_cast<char*>(&productos),sizeof(archivoHeader));
+        archivoproductos.flush();
+        archivoproductos.clear(); 
     }
     else{
         cout<<"La cantidad de productos es: "<<productos.cantidadRegistros<<endl;
+        archivoproductos.clear(); 
     }
-    archivoproveedores.read(reinterpret_cast<char*>(&proveedores),sizeof(archivoHeader));
-    if(proveedores.cantidadRegistros==4096||proveedores.cantidadRegistros<=0){
-        cout<<"No hay producto Registrados: "<<endl;
-        proveedores.cantidadRegistros=0;
-        proveedores.proximoID=0;
-        proveedores.registrosActivos=0;
-        proveedores.version;
-    }
-    else{
-        cout<<"La cantidad de provedores es: "<<proveedores.cantidadRegistros<<endl;
-    }
-    archivoclientes.read(reinterpret_cast<char*>(&clientes),sizeof(archivoHeader));
-    if(clientes.cantidadRegistros>4096||clientes.cantidadRegistros<=0){
-        cout<<"No hay producto Registrados: "<<endl;
-        proveedores.cantidadRegistros=0;
-        proveedores.proximoID=0;
-        proveedores.registrosActivos=0;
-        proveedores.version;
-    }
-    else{
-        cout<<"La cantidad de provedores es: "<<clientes.cantidadRegistros<<endl;
-    }
-    archivotransacciones.read(reinterpret_cast<char*>(&transacciones),sizeof(archivoHeader));
+   
     int opcion;
     do{
         int opt=0,id;
@@ -1439,6 +1452,7 @@ int main(){
                 switch(opcion){
                     case 1:
                         prov.Crearproveedor(proveedores,&archivoproveedores);
+                        cout<<"cantidad de registros"<<proveedores.cantidadRegistros<<endl;
                         break;
                     case 2:
                         while(opcion!=1&&opcion!=2){
@@ -1559,6 +1573,10 @@ int main(){
                 break;
             case 5:
                 cout<<"Saliendo del programa..."<<endl;
+                archivoclientes.close();
+                archivoproductos.close();
+                archivoproveedores.close();
+                archivotransacciones.close();
                 break;
             default:
                 cout<<"Opción inválida. Intente nuevamente."<<endl;
