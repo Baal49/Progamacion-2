@@ -1277,77 +1277,118 @@ void venta(Tienda* tienda){
     }
 }
 void compra(Tienda* tienda){
-    Producto* p;
-    Proveedor* prov = nullptr;
+    if(!tienda){
+        cout<<"Tienda no inicializada. No se puede registrar la compra."<<endl;
+        return;
+    }
+
     int idprov;
-    char respuesta;
-    string nombre,direccion;
     cout<<"Inserte el id del proveedor: ";
     cin>>idprov;
-    prov = buscarProveedor(tienda,idprov,"",1);
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    Proveedor* prov = buscarProveedor(tienda, idprov, "", 1);
     if(!prov){
+        char respuesta;
         cout<<"No existe ese proveedor. Desea registrarlo? (S/N): ";
         cin>>respuesta;
-        if(respuesta=='S'||respuesta=='s'){
-             Crearproveedor(tienda);
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        if(respuesta=='S' || respuesta=='s'){
+            Crearproveedor(tienda);
         } else {
+            cout<<"Compra cancelada. No se puede continuar sin proveedor."<<endl;
             return;
         }
     } else {
-        cout<<"Nombre del proveedor: "<<prov->nombre<<" ID: "<<idprov<<"\n";
+        cout<<"Proveedor encontrado: "<<prov->nombre<<" (ID "<<prov->id<<")"<<endl;
         delete prov;
-        int opt,id,sub,cantp=1;
-        bool cantver=0;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos=new Productoventa[cantp];
-        do{
-            int cant;
-            cout<<"introduce el id del producto que se va a comprar: ";
-            cin>>id;
-            *p=buscarProducto(tienda,id,"",1);
-            //if(p->precio>0){
-            
-            cout<<"El precio del producto es: "<<p->precio<<endl;
-            do{
-            cout<<"introduce la cantidad del producto que se va a comprar: ";
-            cin>>cant;
-            if(cant<=0){
-                cout<<"la cantidad debe ser mayor a 0 intentelo de nuevo.";
-                cantver=1;
-            }
-        }while(cantver==1);
-        sub+=(cant*p->precio);
-        string input;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].id=p->id;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].cantidad=cant;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].preciounidad=p->precio;
-        do{
-        cout<<"desea incluir otro producto? S para si N para no";
-        getline(cin,input);
-        if(input=="S"||input=="s"){
-            opt=1;
-            //redimensionarProductosventa(tienda->transacciones);
-        }
-        else if(input=="N"||input=="n"){
-            opt=0;
-        }
-        else{
-            cout<<"Opcion no valida intentelo de nuevo."<<endl;
-            opt=2;
-        }
-        cantp++;
-    }while(opt!=1&&opt!=2);
-        }while(opt==1);
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].id=tienda->siguienteIdTransaccion;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].tipo=2;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].idRelacionado=idprov;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].total=sub;
-        cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
-        string input;
-        strncpy(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha, input.c_str(), sizeof(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha)-1);
+    }
 
-    
+    const char* rutaProductos = "productos.bin";
+    fstream archivoProductos(rutaProductos, ios::in | ios::out | ios::binary);
+    if(!archivoProductos){
+        cout<<"No se pudo abrir el archivo de productos ("<<rutaProductos<<")."<<endl;
+        return;
+    }
 
-}
+    int idProducto;
+    int cantidad;
+    float total = 0;
+    int productoEncontrado = 0;
+    Productoventa item{};
+    Producto regProducto{};
+    long posProducto = -1;
+
+    cout<<"Introduce el id del producto que se va a comprar: ";
+    cin>>idProducto;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    archivoProductos.seekg(0, ios::beg);
+    while(archivoProductos.read(reinterpret_cast<char*>(&regProducto), sizeof(Producto))){
+        if(regProducto.id == idProducto){
+            productoEncontrado = 1;
+            posProducto = archivoProductos.tellg() - sizeof(Producto);
+            break;
+        }
+    }
+
+    if(!productoEncontrado){
+        cout<<"Producto con ID "<<idProducto<<" no encontrado en productos.bin."<<endl;
+        archivoProductos.close();
+        return;
+    }
+
+    cout<<"Producto encontrado: "<<regProducto.nombre<<" | Stock actual: "<<regProducto.stock<<" | Precio unitario: "<<regProducto.precio<<endl;
+    cout<<"Introduce la cantidad a comprar (entero mayor a 0): ";
+    cin>>cantidad;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    if(cantidad <= 0){
+        cout<<"Cantidad invalida. Compra cancelada."<<endl;
+        archivoProductos.close();
+        return;
+    }
+
+    // Para compra, el stock se incrementa.
+    regProducto.stock += cantidad;
+    total = cantidad * regProducto.precio;
+
+    // Reescribir el producto con stock actualizado en el archivo binario.
+    archivoProductos.seekp(posProducto, ios::beg);
+    archivoProductos.write(reinterpret_cast<const char*>(&regProducto), sizeof(Producto));
+    if(!archivoProductos){
+        cout<<"Error al actualizar stock en productos.bin."<<endl;
+        archivoProductos.close();
+        return;
+    }
+    archivoProductos.close();
+
+    // Registrar transacción de compra en archivo binario.
+    Transaccion trans{};
+    trans.id = tienda->siguienteIdTransaccion++;
+    trans.tipo = 2;
+    trans.idRelacionado = idprov;
+    trans.cantidad = cantidad;
+    trans.precioUnitario = regProducto.precio;
+    trans.total = total;
+    strncpy(trans.fecha, "0000-00-00", sizeof(trans.fecha)-1);
+    trans.fecha[sizeof(trans.fecha)-1] = '\0';
+    strncpy(trans.descripcion, "Compra registrada", sizeof(trans.descripcion)-1);
+    trans.descripcion[sizeof(trans.descripcion)-1] = '\0';
+    trans.productos = nullptr;
+
+    fstream archivoTransacciones("transacciones.bin", ios::out | ios::app | ios::binary);
+    if(!archivoTransacciones){
+        cout<<"No se pudo abrir transacciones.bin para registrar la compra."<<endl;
+        return;
+    }
+    archivoTransacciones.write(reinterpret_cast<const char*>(&trans), sizeof(Transaccion));
+    archivoTransacciones.close();
+
+    cout<<"Compra registrada correctamente en archivo binario."<<endl;
+    cout<<"ID transaccion: "<<trans.id<<" | Total: "<<trans.total<<" | Stock nuevo: "<<regProducto.stock<<endl;
+
+    // Guardar tienda para preservar siguienteIdTransaccion en tienda.bin
+    guardarTienda(tienda);
 }
 
 int main(){
