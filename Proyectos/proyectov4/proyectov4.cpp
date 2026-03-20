@@ -239,15 +239,19 @@ Proveedor* buscarProveedor(archivoHeader proveedor,fstream* archivo,int id,strin
     Proveedor* parregloencontrados=new Proveedor[proveedor.cantidadRegistros];
     archivo->clear();
     archivo->seekg(0,ios::beg);
-    while(archivo->read(reinterpret_cast<char*>(&p), sizeof(Proveedor))){
+    while(archivo->read(reinterpret_cast<char*>(&p), sizeof(Proveedor))||x<proveedor.cantidadRegistros){
+        cout<<"id:"<<p.id<<endl;
         parreglo[x]=p;
         x++;
     }
     archivo->clear();
 
     if(opcion == 1){
+        cout<<"aqui:"<<endl;
         archivo->seekg(0,ios::beg);
-        while(archivo->read(reinterpret_cast<char*>(&p), sizeof(Proveedor))){
+        for(int i=0;i<proveedor.cantidadRegistros;i++){
+            archivo->read(reinterpret_cast<char*>(&p), sizeof(Proveedor));
+            cout<<"id:"<<p.id<<endl;
             if(p.id == id){
                 Proveedor* result = &p;
                 cout<<"Proveedor encontrado: ID: "<<result->id<<" | Nombre: "<<result->nombre<<"\n";
@@ -497,7 +501,7 @@ class Producto {
     }
     
 }
-Producto buscarProducto(archivoHeader* productosheader,fstream* archivo,int id,string nombre, int opcion){
+Producto buscarProducto(archivoHeader* productosheader,fstream& archivo,int id,string nombre, int opcion){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
     Producto p;
@@ -506,12 +510,14 @@ Producto buscarProducto(archivoHeader* productosheader,fstream* archivo,int id,s
     bool encontrado =0;
     try{ id; }
     catch(...){ cout<<"ID invalido."<<endl;  }
-    while(archivo->read(reinterpret_cast<char*>(&p),sizeof(p))){
+    for(int i=0;i<productosheader->cantidadRegistros;i++){
+        archivo.read(reinterpret_cast<char*>(&p),sizeof(p));
         if(p.id == id){
             posicion=i;
             cout<<"Producto encontrado: ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<"\n";
             encontrado=1;  
             break;
+            return p;
         }
         else{
             i++;
@@ -530,7 +536,7 @@ Producto buscarProducto(archivoHeader* productosheader,fstream* archivo,int id,s
         getline(cin,nombre);
         int* idencontrados=new int[productosheader->cantidadRegistros];
         int x=0;
-        while(archivo->read(reinterpret_cast<char*>(&p),sizeof(p))){
+        while(archivo.read(reinterpret_cast<char*>(&p),sizeof(p))){
             string str(p.nombre);
             if(str.find(nombre)){
                 idencontrados[x]=p.id;
@@ -545,7 +551,7 @@ Producto buscarProducto(archivoHeader* productosheader,fstream* archivo,int id,s
             Producto* p2= new Producto[productosheader->cantidadRegistros];
             cout<<"se encontraron "<<x<<" coincidencias :"<<endl;
             for(int i=0;i<x;i++){
-                while(archivo->read(reinterpret_cast<char*>(&p),sizeof(p))){
+                while(archivo.read(reinterpret_cast<char*>(&p),sizeof(p))){
                     if(p.id==idencontrados[i]){
                         p2[x]=p;
                         cout<<"Producto "<<i+1<<": id:"<<p.id<<" nombre: "<<p.nombre<<" codigo: "<<p.codigo<<" precio: "<<p.precio<<endl;
@@ -587,12 +593,14 @@ void listarProductos(fstream* archivop,fstream* archivosprov, archivoHeader prod
         cout<<"╠════╬═══════════╬══════════════════╬══════════════╬═══════╬════════╬══════╣\n";
         archivop->clear();
         archivosprov->clear();
-        archivop->seekg(posiprod*sizeof(archivoHeader),ios::beg);
-        archivosprov->seekg(posiprov*sizeof(archivoHeader),ios::beg);
+        archivop->seekg(0,ios::beg);
+        archivosprov->seekg(0,ios::beg);
         
-        while(archivop->read(reinterpret_cast<char*>(&p),sizeof(Producto))){
+        for(int i=0;i<productos.cantidadRegistros;i++){
+            archivop->read(reinterpret_cast<char*>(&p),sizeof(Producto));
             const char* provName = "N/A";
-            while(archivosprov->read(reinterpret_cast<char*>(&prov),sizeof(Proveedor))){
+            for(int j=0;j<provedor.cantidadRegistros;j++){
+                archivosprov->read(reinterpret_cast<char*>(&prov),sizeof(Proveedor));
                 if(prov.id == p.idProveedor){
                     provName = prov.nombre;
                     break;
@@ -1261,7 +1269,7 @@ void eliminarheader(archivoHeader header,fstream& archivo,char* ruta,int opcion,
     }
 
 }
-void venta(Tienda* tienda,archivoHeader producto,archivoHeader proveedor,fstream* archivop,fstream* archivoprov){
+void venta(Tienda* tienda,archivoHeader producto,archivoHeader proveedor,fstream& archivop,fstream& archivoprov){
     Producto* p;
     int cedu;
     string input;
@@ -1328,7 +1336,7 @@ void venta(Tienda* tienda,archivoHeader producto,archivoHeader proveedor,fstream
 
     }
 }
-void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archivoHeader cliente,fstream* archivop,fstream* archivoprov,fstream* archivoc){
+void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archivoHeader cliente,fstream& archivop,fstream& archivoprov,fstream& archivoc){
     Producto* p;
     Proveedor* prov;
     int idprov;
@@ -1336,7 +1344,7 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
     string nombre,direccion;
     cout<<"Inserte el id del proveedor: ";
     cin>>idprov;
-    prov=prov->buscarProveedor(proveedor,archivoprov,idprov,"",1);
+    prov=prov->buscarProveedor(proveedor,&archivoprov,idprov,"",1);
     if(nombre=="no existe ese proveedor"){
         cout<<nombre<<" desea registrarlo?"<<endl;
         cout<<"Introduzca S para registrarlo o N para cancelar";
@@ -1559,7 +1567,7 @@ int main(){
                             cout<<"ingrese el nombre: ";
                             getline(cin,nombre);
                         }
-                        p.buscarProducto(&productos,&archivoproductos,id,nombre,opt);
+                        p.buscarProducto(&productos,archivoproductos,id,nombre,opt);
                         break;
                     case 3:
                         cout<<"ingrese el id del producto: ";
@@ -1607,6 +1615,8 @@ int main(){
                         cout<<"cantidad de registros"<<proveedores.cantidadRegistros<<endl;
                         break;
                     case 2:
+                        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+                        opcion=0;
                         while(opcion!=1&&opcion!=2){
                             cout<<"Quiere hacer la busqueda del proveedor por 1.ID o por 2.Nombre";
                             cin>>opcion;
@@ -1713,10 +1723,10 @@ int main(){
                 cin  >>opcion;
                 switch(opcion){
                     case 1:
-                        compra(&tienda,productos,proveedores,clientes,&archivoproductos,&archivoproveedores,&archivoclientes);
+                        compra(&tienda,productos,proveedores,clientes,archivoproductos,archivoproveedores,archivoclientes);
                         break;
                     case 2:
-                        venta(&tienda,productos,proveedores,&archivoproductos,&archivoproveedores);
+                        venta(&tienda,productos,proveedores,archivoproductos,archivoproveedores);
                         break;
                     case 3:
                         //editarCliente(&tienda);
