@@ -92,10 +92,13 @@ void listarProveedores(archivoHeader proveedor,fstream* archivoprov){
         if(proveedor.cantidadRegistros<=0){ cout<<"No hay proveedores registrados."<<endl; return; }
         cout<<"Listado de proveedores:\n";
         Proveedor p;
+        int x=0;
         archivoprov->clear();
         archivoprov->seekg(0,ios::beg);
-        while(archivoprov->read(reinterpret_cast<char*>(&p),sizeof(Proveedor))){
+        while(archivoprov->read(reinterpret_cast<char*>(&p),sizeof(Proveedor))||x<proveedor.cantidadRegistros){
             cout<<"ID: "<<p.id<<" | Nombre: "<<p.nombre<<"\n";
+            cout<<"X: "<<x<<endl;
+            x++;
         }
         archivoprov->clear();
 
@@ -107,7 +110,7 @@ void eliminarProveedor(archivoHeader proveedores,fstream* archivop,int id){
         cout<<"No se puede abrir el archivo de proveedores: "<<"."<<endl;
         return;
     }
-    const char* rutaOriginal="Progamacion-2/Proyectos/proyectov4/proveedores.bin";
+    const char* rutaOriginal="C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin";
     fstream archivoTemp(rutaTemp, ios::out | ios::binary | ios::trunc);
     if(!archivoTemp){
         cout<<"No se puede crear archivo temporal para eliminar proveedor."<<endl;
@@ -117,16 +120,21 @@ void eliminarProveedor(archivoHeader proveedores,fstream* archivop,int id){
     Proveedor p;
     bool encontrado = false;
     int total = 0;
+    archivop->clear();
+    archivop->seekg(0,ios::beg);
     while(archivop->read(reinterpret_cast<char*>(&p), sizeof(Proveedor))){
         if(p.id == id){
             encontrado = true;
             continue;
         }
-        archivoTemp.write(reinterpret_cast<char*>(&p), sizeof(Proveedor));
+    archivop->clear();
+    archivoTemp.clear();
+    archivoTemp.seekp(0,ios::beg);
+    archivoTemp.write(reinterpret_cast<char*>(&p), sizeof(Proveedor));
         total++;
     }
     archivoTemp.close();
-
+    archivop->close();
     if(!encontrado){
         cout<<"Proveedor con ID "<<id<<" no encontrado."<<endl;
         remove(rutaTemp);
@@ -141,6 +149,7 @@ void eliminarProveedor(archivoHeader proveedores,fstream* archivop,int id){
         cout<<"Error al renombrar el archivo temporal de proveedores."<<endl;
         return;
     }
+    archivop->open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::in|ios::out);
 
     if(proveedores.cantidadRegistros > 0) proveedores.cantidadRegistros--;
     cout<<"Proveedor con ID "<<id<<" eliminado correctamente."<<endl;
@@ -1339,21 +1348,21 @@ int main(){
     archivoproductos.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/productos.bin", ios::binary | ios::out);
     archivoproductos.close();
     archivoproductos.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/productos.bin", ios::binary | ios::in | ios::out);
-    fstream archivoproveedores("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::in|ios::out|ios::app);
+    fstream archivoproveedores("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::in|ios::out);
     archivoproveedores.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin", ios::binary | ios::out);
     archivoproveedores.close();
-    archivoproveedores.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::in|ios::out|ios::app);
+    archivoproveedores.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::in|ios::out);
     archivoproveedores.clear(); 
     archivoproveedores.seekp(0, ios::beg);
     archivoproveedores.seekg(0, ios::beg);
-    archivoproveedores.read(reinterpret_cast<char*>(&prov),sizeof(proveedores));
+    archivoproveedores.read(reinterpret_cast<char*>(&proveedores),sizeof(archivoHeader));
     archivoproveedores.clear(); 
     cout<<"El valor de proveedores es: "<<proveedores.cantidadRegistros<<endl;
     cout << "Nueva posicion de lectura: " << archivoproveedores.tellg() <<"Nueva posicion de escritura: "<<archivoproveedores.tellp()<< endl;
-    fstream archivoclientes("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/clientes.bin",ios::binary|ios::in|ios::out|ios::app);
+    fstream archivoclientes("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/clientes.bin",ios::binary|ios::in|ios::out);
     archivoclientes.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/clientes.bin",ios::binary|ios::out);
     archivoclientes.close();
-    archivoclientes.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/clientes.bin",ios::binary|ios::in|ios::out|ios::app);
+    archivoclientes.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/clientes.bin",ios::binary|ios::in|ios::out);
      archivoclientes.clear(); 
     archivoclientes.seekp(0, ios::beg);
     archivoclientes.seekg(0, ios::beg);
@@ -1517,6 +1526,9 @@ int main(){
                         cout<<"ingrese el id del del producto que se quiere borrar";
                         cin>>id;
                         prov.eliminarProveedor(proveedores,&archivoproveedores, id); 
+                        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+                        opt=0;
+                        opcion=0;
                         break;
                     case 0:
                         cout<<"Volviendo al menú principal..."<<endl;
