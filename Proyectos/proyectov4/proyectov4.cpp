@@ -866,9 +866,8 @@ void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
         Transaccion temp{};
         string input;
         string resp;
-        // Tipo de transacción
         while(true){
-            cout<<"Ingrese el tipo de transacción (1=Venta, 2=Compra) o 'CANCELAR' para cancelar: ";
+            cout<<"Ingrese el tipo de transacción (1=Venta, 2=Compra) o 'CANCELAR' para cancelar: "; // validar que solo se ingrese 1 o 2 para tipo, y permitir cancelar
             if(!getline(cin,input)) return;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
             try{ temp.tipo = stoi(input); }
@@ -876,42 +875,38 @@ void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
             if(temp.tipo==1 || temp.tipo==2) break;
             cout<<"Tipo invalido. Ingrese 1 para Venta o 2 para Compra: ";
         }
-        
-        // Fecha
         cout<<"Ingrese la fecha de la transacción (YYYY-MM-DD) o 'CANCELAR' para cancelar: ";
         if(!getline(cin,input)) return;
         if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
         strncpy(temp.fecha, input.c_str(), sizeof(temp.fecha)-1);
-        // Descripcion (opcional)
         cout<<"Ingrese una descripcion para la transaccion (opcional, 'CANCELAR' para cancelar): ";
         if(!getline(cin,input)) return;
         if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
         strncpy(temp.descripcion, input.c_str(), sizeof(temp.descripcion)-1);
-        //Asignar ID autoincremental
-        temp.id = tienda->siguienteIdTransaccion++;
+        temp.id = tienda->siguienteIdTransaccion++; // Asignacion de ID autoincremental
+        temp.productos = nullptr;
+        temp.cantidad = 0;
+        temp.precioUnitario = 0;
+        temp.idRelacionado = 0;
+        temp.total = 0;
 
-        // Confirmación
         cout<<"\nResumen de la transacción:"<<endl;
         cout<<"ID: "<<temp.id<<" | Tipo: "<<temp.tipo<<" | Fecha: "<<temp.fecha<<" | Descripcion: "<<temp.descripcion<<"\n";
         cout<<"¿Desea guardar esta transacción? (S/N): ";
-        cin >> resp ;
-        cin.ignore(numeric_limits<streamsize>::max(),'\n'); // Limpiar el buffer después de leer la respuesta
+        cin >> resp;
+        cin.ignore(numeric_limits<streamsize>::max(),'\n');
         if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
-            // si el arreglo está lleno, redimensionar duplicando capacidad
-            if(tienda->cantidadTransacciones >= tienda->capacidadTransacciones){
-                //redimensionarTransaccion(tienda);
-                cout << "Arreglo de transacciones redimensionado a capacidad " << tienda->capacidadTransacciones << "." << endl;
-                for (int i = 0; i < tienda->cantidadTransacciones; i++) {
-                    cout << "Transaccion " << i + 1 << ": ID: " << tienda->transacciones[i].id << " | Tipo: " << tienda->transacciones[i].tipo << " | Fecha: " << tienda->transacciones[i].fecha << " | Descripcion: " << tienda->transacciones[i].descripcion << "\n";
-                    
-}
-            tienda->transacciones[tienda->cantidadTransacciones++] = temp;
-            cout<<"Transacción guardada."<<endl;
+            const char* ruta = "transacciones.bin";
+            fstream archivo(ruta, ios::binary | ios::out | ios::app);
+            if(!archivo){ cout<<"No se puede abrir el archivo de transacciones: "<<ruta<<"."<<endl; return; }
+            archivo.write(reinterpret_cast<char*>(&temp), sizeof(Transaccion));
+            archivo.close();
+            tienda->cantidadTransacciones++;
+            cout<<"Transacción guardada en archivo binario."<<endl;
         } else {
-            cout<<"Transacción descartada por el usuario."<<endl;
+            cout<<"Transacción descartada por el usuario."<<endl; // no se guarda ni se incrementa el ID autoincremental para evitar huecos en la secuencia de IDs por transacciones descartadas
         }
-}
-}
+    }
     void Buscartransaccion (Tienda* tienda, int id){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         const char* ruta = "transacciones.bin";
@@ -1196,7 +1191,7 @@ void editarProducto(archivoHeader producto,fstream* archivo,fstream* archivoprov
 
 
 void venta(Tienda* tienda,archivoHeader producto,archivoHeader proveedor,fstream* archivop,fstream* archivoprov){
-    Producto* p;
+    Producto p;
     int cedu;
     string input;
     string respuesta;
@@ -1214,63 +1209,72 @@ void venta(Tienda* tienda,archivoHeader producto,archivoHeader proveedor,fstream
         }
     } else {
         cout<<"Nombre del cliente: "<<nombre<<" Cedula: "<<cedu<<" Direccion: "<<direccion<<"\n";
-        int opt,id,sub,cantp=1;
-        bool cantver=0;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos=new Productoventa[cantp];
+        int opt,id,sub=0,cantp=0;
+        bool cantver=false;
+        Transaccion trans{};
+        trans.id = tienda->siguienteIdTransaccion++;
+        trans.tipo = 1;
+        trans.idRelacionado = cedu;
+        trans.productos = nullptr;
+        trans.cantidad = 0;
+        trans.precioUnitario = 0;
+        trans.total = 0;
+        string fecha;
         do{
             int cant;
             cout<<"introduce el id del producto que se va a llevar: ";
             cin>>id;
-            *p=p->buscarProducto(&producto,archivop,id,"",1);
-            cout<<"El precio del producto es: "<<p->precio<<endl;
+            p = p.buscarProducto(&producto,archivop,id,"",1);
+            if(p.id==0){ cout<<"Producto no encontrado."<<endl; continue; }
+            cout<<"El precio del producto es: "<<p.precio<<endl;
             do{
-            cout<<"introduce la cantidad del producto que se va a llevar: ";
-            cin>>cant;
-            if(cant>p->stock){
-                cout<<"el producto no tiene esa cantidad intentelo de nuevo La existencia del producto es: "<<p->stock;
-                cantver=1;
-            }
-        }while(cantver==1);
-        sub+=(cant*p->precio);
-        string input;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].id=p->id;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].cantidad=cant;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].preciounidad=p->precio;
-        do{
-        cout<<"desea incluir otro producto? S para si N para no";
-        getline(cin,input);
-        if(input=="S"||input=="s"){
-            opt=1;
-            //redimensionarProductosventa(tienda->transacciones);
-        }
-        else if(input=="N"||input=="n"){
-            opt=0;
-        }
-        else{
-            cout<<"Opcion no valida intentelo de nuevo."<<endl;
-            opt=2;
-        }
-        cantp++;
-    }while(opt!=1&&opt!=2);
+                cout<<"introduce la cantidad del producto que se va a llevar: ";
+                cin>>cant;
+                if(cant>p.stock){
+                    cout<<"el producto no tiene esa cantidad intentelo de nuevo. La existencia del producto es: "<<p.stock<<endl;
+                    cantver=true;
+                } else {
+                    cantver=false;
+                }
+            }while(cantver);
+            sub += (cant * p.precio);
+            cantp += cant;
+            cout<<"desea incluir otro producto? S para si N para no";
+            cin>>input;
+            if(input=="S"||input=="s"){ opt=1; }
+            else if(input=="N"||input=="n"){ opt=0; }
+            else { cout<<"Opcion no valida intentelo de nuevo."<<endl; opt=2; }
         }while(opt==1);
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].id=tienda->siguienteIdTransaccion;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].tipo=1;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].idRelacionado=cedu;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].total=sub;
-        cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
-        strncpy(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha, input.c_str(), sizeof(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha)-1);
 
+        trans.cantidad = cantp;
+        trans.precioUnitario = (cantp > 0 ? float(sub)/cantp : 0);
+        trans.total = sub;
+        cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
+        cin>>fecha;
+        strncpy(trans.fecha, fecha.c_str(), sizeof(trans.fecha)-1);
+        strncpy(trans.descripcion, "Venta", sizeof(trans.descripcion)-1);
+
+        const char* ruta = "transacciones.bin";
+        fstream salida(ruta, ios::binary | ios::out | ios::app);
+        if(!salida){ cout<<"No se puede abrir el archivo de transacciones: "<<ruta<<"."<<endl; return; }
+        salida.write(reinterpret_cast<char*>(&trans), sizeof(Transaccion));
+        salida.close();
+        tienda->cantidadTransacciones++;
+        cout<<"Transaccion de venta registrada en archivo binario."<<endl;
     }
 }
 void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archivoHeader cliente,fstream* archivop,fstream* archivoprov,fstream* archivoc){
-    Producto* p;
+    Producto p;
     Proveedor* prov;
     int idprov;
     char respuesta;
     string nombre,direccion;
+    string input;
     cout<<"Inserte el id del proveedor: ";
     cin>>idprov;
-    prov=prov->buscarProveedor(proveedor,archivoprov,idprov,"",1);
+    prov = nullptr;
+    //buscar proveedor en archivo, función puede variar
+    //prov = prov->buscarProveedor(proveedor,archivoprov,idprov,"",1);
     if(nombre=="no existe ese proveedor"){
         cout<<nombre<<" desea registrarlo?"<<endl;
         cout<<"Introduzca S para registrarlo o N para cancelar";
@@ -1284,58 +1288,58 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
     }
     else{
         cout<<"Nombre del proveedor: "<<nombre<<" ID: "<<idprov;
-        int opt,id,sub,cantp=1;
-        bool cantver=0;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos=new Productoventa[cantp];
+        int opt,id,sub=0,cantp=0;
+        bool cantver=false;
+        Transaccion trans{};
+        trans.id = tienda->siguienteIdTransaccion++;
+        trans.tipo = 2;
+        trans.idRelacionado = idprov;
+        trans.productos = nullptr;
+        trans.cantidad = 0;
+        trans.precioUnitario = 0;
+        trans.total = 0;
+        string fecha;
         do{
             int cant;
             cout<<"introduce el id del producto que se va a comprar: ";
             cin>>id;
-            *p=p->buscarProducto(&producto,archivop,id,"",1);
-            //if(p->precio>0){
-            
-            cout<<"El precio del producto es: "<<p->precio<<endl;
+            p = p.buscarProducto(&producto,archivop,id,"",1);
+            if(p.id==0){ cout<<"Producto no encontrado."<<endl; continue; }
+            cout<<"El precio del producto es: "<<p.precio<<endl;
             do{
-            cout<<"introduce la cantidad del producto que se va a comprar: ";
-            cin>>cant;
-            if(cant<=0){
-                cout<<"la cantidad debe ser mayor a 0 intentelo de nuevo.";
-                cantver=1;
-            }
-        }while(cantver==1);
-        sub+=(cant*p->precio);
-        string input;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].id=p->id;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].cantidad=cant;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].preciounidad=p->precio;
-        do{
-        cout<<"desea incluir otro producto? S para si N para no";
-        getline(cin,input);
-        if(input=="S"||input=="s"){
-            opt=1;
-            //redimensionarProductosventa(tienda->transacciones);
-        }
-        else if(input=="N"||input=="n"){
-            opt=0;
-        }
-        else{
-            cout<<"Opcion no valida intentelo de nuevo."<<endl;
-            opt=2;
-        }
-        cantp++;
-    }while(opt!=1&&opt!=2);
+                cout<<"introduce la cantidad del producto que se va a comprar: ";
+                cin>>cant;
+                if(cant<=0){
+                    cout<<"la cantidad debe ser mayor a 0 intentelo de nuevo."<<endl;
+                    cantver=true;
+                } else {
+                    cantver=false;
+                }
+            }while(cantver);
+            sub += (cant * p.precio);
+            cantp += cant;
+            cout<<"desea incluir otro producto? S para si N para no";
+            cin>>input;
+            if(input=="S"||input=="s"){ opt=1; }
+            else if(input=="N"||input=="n"){ opt=0; }
+            else { cout<<"Opcion no valida intentelo de nuevo."<<endl; opt=2; }
         }while(opt==1);
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].id=tienda->siguienteIdTransaccion;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].tipo=2;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].idRelacionado=idprov;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].total=sub;
+        trans.cantidad = cantp;
+        trans.precioUnitario = (cantp > 0 ? float(sub)/cantp : 0);
+        trans.total = sub;
         cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
-        string input;
-        strncpy(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha, input.c_str(), sizeof(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha)-1);
+        cin>>fecha;
+        strncpy(trans.fecha, fecha.c_str(), sizeof(trans.fecha)-1);
+        strncpy(trans.descripcion, "Compra", sizeof(trans.descripcion)-1);
 
-    
-
-}
+        const char* ruta = "transacciones.bin";
+        fstream salida(ruta, ios::binary | ios::out | ios::app);
+        if(!salida){ cout<<"No se puede abrir el archivo de transacciones: "<<ruta<<"."<<endl; return; }
+        salida.write(reinterpret_cast<char*>(&trans), sizeof(Transaccion));
+        salida.close();
+        tienda->cantidadTransacciones++;
+        cout<<"Transaccion de compra registrada en archivo binario."<<endl;
+    }
 }
 
 int main(){
