@@ -69,10 +69,12 @@ class Proveedor {
                 cout<<"Arreglo de proveedores redimensionado a capacidad "<<tienda->capacidadProveedores<<"."<<endl;
             }*/
             if(proveedor.cantidadRegistros>0){
-                archivo->seekp((proveedor.cantidadRegistros+1)*sizeof(proveedor),ios::beg);
+                archivo->seekp((proveedor.cantidadRegistros)*sizeof(Proveedor),ios::beg);
+                cout<<"mayor que 0";
             }
             else{
-                archivo->seekp((0)*sizeof(proveedor),ios::beg);
+                archivo->seekp((0)*sizeof(Proveedor),ios::beg);
+                cout<<"igual que 0";
             }
             archivo->write(reinterpret_cast<char*>(&temp),sizeof(Proveedor));
             proveedor.cantidadRegistros++;
