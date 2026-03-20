@@ -641,216 +641,213 @@ void inicializarTienda(Tienda* tienda){
 }
 
 
-// Busca transacciones por ID de producto usando un arreglo dinámico de punteros
+// Busca transacciones por ID de producto usando fichero binario
 void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
     if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
-    if(tienda->transacciones==nullptr || tienda->cantidadTransacciones<=0){ cout<<"No hay transacciones registradas."<<endl; return; }
+    const char* ruta = "transacciones.bin";
+    fstream archivo(ruta, ios::binary | ios::in);
+    if(!archivo){ cout<<"No se puede abrir el archivo de transacciones: "<<ruta<<". Asegurese de que exista."<<endl; return; }
+    archivo.seekg(0, ios::end);
+    streampos tam = archivo.tellg();
+    if(tam < (streampos)sizeof(Transaccion)){
+        cout<<"No hay transacciones registradas en el archivo binario."<<endl;
+        return;
+    }
+    archivo.seekg(0, ios::beg);
 
-    Transaccion** matches = new Transaccion*[tienda->cantidadTransacciones];
+    Transaccion t;
     int encontrados = 0;
-    for(int i=0;i<tienda->cantidadTransacciones;i++){
-        if(tienda->transacciones[i].productos[i].id == idProducto){ matches[encontrados++] = &tienda->transacciones[i]; }
+    cout<<"Transacciones que tienen de referencia la ID "<<idProducto<<":\n"; // mouestra solo transacciones relacionadas con el producto que introdujo el usuario
+    while(archivo.read(reinterpret_cast<char*>(&t), sizeof(Transaccion))){
+        if(t.idRelacionado == idProducto || t.id == idProducto){
+            encontrados++;
+            cout<<"ID: "<<t.id<<" | Tipo: "<<t.tipo<<" | Cantidad: "<<t.cantidad
+                <<" | Precio unitario: "<<t.precioUnitario<<" | Total: "<<t.total
+                <<" | Fecha: "<<t.fecha<<" | Descripcion: "<<t.descripcion<<"\n";
+        }
     }
-    if(encontrados==0){ cout<<"No se encontraron transacciones para el producto con ID "<<idProducto<<"."<<endl; delete[] matches; return; }
-    cout<<"Se encontraron "<<encontrados<<" transaccion(es) para el producto "<<idProducto<<":\n";
-    for(int i=0;i<encontrados;i++){
-        Transaccion* t = matches[i];
-        cout<<"ID: "<<t->id<<" | Tipo: "<<t->tipo<<" | Cantidad: "<<t->cantidad
-            <<" | Precio unitario: "<<t->precioUnitario<<" | Total: "<<t->total
-            <<" | Fecha: "<<t->fecha<<"\n";
+    archivo.close();
+    if(encontrados==0){
+        cout<<"No se encontraron transacciones para el producto con ID "<<idProducto<<"."<<endl;
+    } else {
+        cout<<"Se encontraron "<<encontrados<<" transaccion(es)."<<endl;
     }
-    delete[] matches;
 }
 
-
-
-
-
-
     void Crearcliente(Tienda* tienda){
-        if(tienda->clientes!=nullptr){ 
+        if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
         string input;
-        bool cedulaExiste=1;
         int cantidad = 0;
         cout<<"Ingrese la cantidad de clientes a crear (o 'CANCELAR'/'0' para cancelar): ";
         while(true){
-            if(!getline(cin, input)) return; // Leer línea completa para permitir espacios
+            if(!getline(cin, input)) return; // Leer linea para permitir espacios
             if(input=="CANCELAR" || input=="0") { cout<<"Creación cancelada."<<endl; return; }
             try{ cantidad = stoi(input); }
             catch(...){ cout<<"Entrada invalida. Ingrese un numero: "; continue; }
             if(cantidad>0) break;
             cout<<"La cantidad debe ser mayor a 0. Intente nuevamente: ";
         }
+
+        const char* ruta = "clientes.bin";
+        fstream archivo(ruta, ios::binary | ios::in);
+        vector<Cliente> clientesExistentes;
+        if(archivo){
+            archivo.seekg(0, ios::beg);
+            Cliente c;
+            while(archivo.read(reinterpret_cast<char*>(&c), sizeof(Cliente))){
+                clientesExistentes.push_back(c);
+            }
+            archivo.close();
+        }
+
+        bool err = false;
         for(int n=0;n<cantidad;n++){
             Cliente temp{};
-
-            // Cedula (única)
-            while(cedulaExiste){
+            while(true){
                 cout<<"Ingrese la cedula del cliente (o 'CANCELAR' para cancelar): ";
                 if(!getline(cin, input)) return;
                 if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
                 if(input.empty()){ cout<<"La cedula no puede estar vacía."<<endl; continue; }
-                // Validar que la cedula no exista ya
-                 cedulaExiste = false;
-                for(int i=0;i<tienda->cantidadClientes;i++){
-                    if(tienda->clientes[i].cedula == stoi(input)){
-                        cedulaExiste = true;
-                        break;
-                    }
-                for (int i=0;i<input.length();i++){
-                    if(!isdigit(input[i])){
-                        cout<<"La cedula solo puede contener numeros."<<endl;
-                        cedulaExiste=true;
-                        break;
-                    }
-                }
-                if(cedulaExiste){ cout<<"La cedula ya existe. Ingrese otra."<<endl; continue; }
-                tienda->clientes[i].cedula = stoi(input);
+                bool soloDigitos=true;
+                for(char ch:input){ if(!isdigit(ch)){ soloDigitos=false; break; } }
+                if(!soloDigitos){ cout<<"La cedula solo puede contener numeros."<<endl; continue; }
+                int cedulaNueva = stoi(input);
+                bool existe=false;
+                for(const Cliente &c : clientesExistentes){ if(c.cedula == cedulaNueva){ existe=true; break; } }
+                if(existe){ cout<<"La cedula ya existe. Ingrese otra."<<endl; continue; }
+                temp.cedula = cedulaNueva;
                 break;
             }
-        }
-   
-            // Nombre
+
             cout<<"Ingrese el nombre del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
             strncpy(temp.nombre, input.c_str(), sizeof(temp.nombre)-1);
 
-            // Correo
             cout<<"Ingrese el correo del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
+        
             strncpy(temp.correo, input.c_str(), sizeof(temp.correo)-1);
-            for (int i=0;i<strlen(temp.correo);i++){
-                if(temp.correo[i]==' '){
-                    cout<<"Correo invalido. No se permiten espacios."<<endl;
-                    strncpy(temp.correo, "", sizeof(temp.correo)-1);
-                    break;
-                }
-            }
-            for (int i=0;i<strlen(temp.correo);i++){
-                if(temp.correo[i]=='@'){
-                    bool puntoEncontrado=false;
-                    for(int j=i+1;j<strlen(temp.correo);j++){
-                        if(temp.correo[j]=='.'){
-                            puntoEncontrado=true;
-                            break;
-                        }
-                    }
-                    if(!puntoEncontrado){
-                        cout<<"Correo invalido. Debe contener un punto (.) después del @."<<endl;
-                        strncpy(temp.correo, "", sizeof(temp.correo)-1);
-                        break;
-                    }
-                    
-                }
-            }
-            // Telefono
             cout<<"Ingrese el telefono del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
             strncpy(temp.telefono, input.c_str(), sizeof(temp.telefono)-1);
-            for (int i=0;i<strlen(temp.telefono);i++){
-                if(!isdigit(temp.telefono[i]) && temp.telefono[i]!='+' && temp.telefono[i]!='-' && temp.telefono[i]!=' '){
-                    cout<<"Telefono invalido. Solo se permiten numeros, espacios, + y -."<<endl;
-                    strncpy(temp.telefono, "", sizeof(temp.telefono)-1);
-                    break;
-                }
-            }
-             // Dirreccion
+
             cout<<"Ingrese la dirreccion del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
             strncpy(temp.dirreccion, input.c_str(), sizeof(temp.dirreccion)-1);
 
-             // Fecha de registro
+            //Fecha de registro
             cout<<"Ingrese la fecha de registro del cliente (o 'CANCELAR' para cancelar): ";
             if(!getline(cin,input)) return;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
             strncpy(temp.fecharegitro, input.c_str(), sizeof(temp.fecharegitro)-1);
 
-            // Agregar cliente temporal al array de clientes
-            tienda->clientes[tienda->cantidadClientes] = temp;
-            tienda->cantidadClientes++;
-            cout<< tienda->clientes[tienda->cantidadClientes].cedula<<tienda->clientes[tienda->cantidadClientes].nombre<< endl;
+            clientesExistentes.push_back(temp);
         }
- 
 
-        }
+        fstream salida(ruta, ios::binary | ios::out | ios::trunc);
+        if(!salida){ cout<<"No se puede abrir el archivo de clientes para guardar."<<endl; return; }
+        for(const Cliente &c : clientesExistentes){ salida.write(reinterpret_cast<const char*>(&c), sizeof(Cliente)); }
+        salida.close();
+
+        cout<<"Clientes guardados en archivo binario."<<endl;
+        tienda->cantidadClientes = (int)clientesExistentes.size();
     }
         void Editarcliente (Tienda* tienda, int cedula){
-            // Implementar función para editar los datos de un cliente existente
-            string input;
-            for(int i=0;i<tienda->cantidadClientes;i++){
-                if(tienda->clientes[i].cedula == cedula){
-                    // Encontrado el cliente, mostrar opciones de edición
-                    cout<<"Cliente encontrado: "<<tienda->clientes[i].nombre<<" | Cedula: "<<tienda->clientes[i].cedula<<" | Correo: "<<tienda->clientes[i].correo<<" | Telefono: "<<tienda->clientes[i].telefono<<" | Dirreccion: "<<tienda->clientes[i].dirreccion<<" | Fecha de registro: "<<tienda->clientes[i].fecharegitro<<endl;
-                    cout<<"¿Qué desea editar?"<<endl;
-                    cout<<"1. Nombre"<<endl;
-                    cout<<"2. Correo"<<endl;
-                    cout<<"3. Telefono"<<endl;
-                    cout<<"4. Dirreccion"<<endl;
-                    cout<<"5. Fecha de registro"<<endl;
-                    cout<<"0. Cancelar"<<endl;
-                    int opcion;
-                    cin>>opcion;
-                    cin.ignore(numeric_limits<streamsize>::max(),'\n'); // Limpiar el buffer después de leer la opción
-                    switch(opcion){
-                        case 0:
-                            cout<<"Edición cancelada."<<endl;
-                            return; 
-                        case 1:
-                            cout<<"Ingrese el nuevo nombre del cliente (o 'CANCELAR' para cancelar): ";
-                            
-                            if(!getline(cin,input)) return;
-                            if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
-                            strncpy(tienda->clientes[i].nombre, input.c_str(), sizeof(tienda->clientes[i].nombre)-1);
-                            break;
-                        case 2:
-                            cout<<"Ingrese el nuevo correo del cliente (o 'CANCELAR' para cancelar): ";
-                            if(!getline(cin,input)) return;
-                            if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
-                            strncpy(tienda->clientes[i].correo, input.c_str(), sizeof(tienda->clientes[i].correo)-1);
-                            break;
-                        case 3:
-                            cout<<"Ingrese el nuevo telefono del cliente (o 'CANCELAR' para cancelar): ";
-                            if(!getline(cin,input)) return;
-                            if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
-                            strncpy(tienda->clientes[i].telefono, input.c_str(), sizeof(tienda->clientes[i].telefono)-1);
-                            break;
-                        case 4:
-                            cout<<"Ingrese la nueva dirreccion del cliente (o 'CANCELAR' para cancelar): ";
-                            if(!getline(cin,input)) return;
-                            if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
-                            strncpy(tienda->clientes[i].dirreccion, input.c_str(), sizeof(tienda->clientes[i].dirreccion)-1);
-                            break;
-                        case 5:
-                            cout<<"Ingrese la nueva fecha de registro del cliente (o 'CANCELAR' para cancelar): ";
-                            if(!getline(cin,input)) return;
-                            if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
-                            strncpy(tienda->clientes[i].fecharegitro, input.c_str(), sizeof(tienda->clientes[i].fecharegitro)-1);
-                            break;
-                        
-                        default:
-                            cout<<"Opción inválida. Edición cancelada."<<endl;
-                            return;
+            if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
+            const char* ruta = "clientes.bin";
+            fstream archivo(ruta, ios::binary | ios::in);
+            if(!archivo){ cout<<"No se puede abrir el archivo de clientes: "<<ruta<<". Asegurese de que exista."<<endl; return; }
+            vector<Cliente> clientes;
+            Cliente c;
+            while(archivo.read(reinterpret_cast<char*>(&c), sizeof(Cliente))){ clientes.push_back(c); }
+            archivo.close();
+            if(clientes.empty()){ cout<<"No hay clientes registrados en el archivo binario."<<endl; return; }
 
-        }
-    }
-}
+            int indice=-1;
+            for(int i=0;i<(int)clientes.size();i++){
+                if(clientes[i].cedula==cedula){ indice=i; break; }
+            }
+            if(indice<0){ cout<<"Cliente con cedula "<<cedula<<" no encontrado."<<endl; return; }
+
+            cout<<"Cliente encontrado: "<<clientes[indice].nombre<<" | Cedula: "<<clientes[indice].cedula<<" | Correo: "<<clientes[indice].correo<<" | Telefono: "<<clientes[indice].telefono<<" | Dirreccion: "<<clientes[indice].dirreccion<<" | Fecha de registro: "<<clientes[indice].fecharegitro<<endl;
+            cout<<"¿Qué desea editar?"<<endl;
+            cout<<"1. Nombre"<<endl;
+            cout<<"2. Correo"<<endl;
+            cout<<"3. Telefono"<<endl;
+            cout<<"4. Dirreccion"<<endl;
+            cout<<"5. Fecha de registro"<<endl;
+            cout<<"0. Cancelar"<<endl;
+            int opcion;
+            cin>>opcion;
+            cin.ignore(numeric_limits<streamsize>::max(),'\n');
+            string input;
+            switch(opcion){
+                case 0:
+                    cout<<"Edición cancelada."<<endl; return;
+                case 1:
+                    cout<<"Ingrese el nuevo nombre del cliente (o 'CANCELAR' para cancelar): ";
+                    if(!getline(cin,input)) return;
+                    if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
+                    strncpy(clientes[indice].nombre,input.c_str(),sizeof(clientes[indice].nombre)-1);
+                    break;
+                case 2:
+                    cout<<"Ingrese el nuevo correo del cliente (o 'CANCELAR' para cancelar): ";
+                    if(!getline(cin,input)) return;
+                    if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
+                    strncpy(clientes[indice].correo,input.c_str(),sizeof(clientes[indice].correo)-1);
+                    break;
+                case 3:
+                    cout<<"Ingrese el nuevo telefono del cliente (o 'CANCELAR' para cancelar): ";
+                    if(!getline(cin,input)) return;
+                    if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
+                    strncpy(clientes[indice].telefono,input.c_str(),sizeof(clientes[indice].telefono)-1);
+                    break;
+                case 4:
+                    cout<<"Ingrese la nueva dirreccion del cliente (o 'CANCELAR' para cancelar): ";
+                    if(!getline(cin,input)) return;
+                    if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
+                    strncpy(clientes[indice].dirreccion,input.c_str(),sizeof(clientes[indice].dirreccion)-1);
+                    break;
+                case 5:
+                    cout<<"Ingrese la nueva fecha de registro del cliente (o 'CANCELAR' para cancelar): ";
+                    if(!getline(cin,input)) return;
+                    if(input=="CANCELAR" || input=="0"){ cout<<"Edición cancelada."<<endl; return; }
+                    strncpy(clientes[indice].fecharegitro,input.c_str(),sizeof(clientes[indice].fecharegitro)-1);
+                    break;
+                default:
+                    cout<<"Opción inválida. Edición cancelada."<<endl; return;
+            }
+            fstream salida(ruta, ios::binary | ios::out | ios::trunc);
+            if(!salida){ cout<<"No se puede guardar el archivo de clientes."<<endl; return; }
+            for(const Cliente &cli : clientes){ salida.write(reinterpret_cast<const char*>(&cli), sizeof(Cliente)); }
+            salida.close();
+            cout<<"Cliente editado y guardado en archivo binario."<<endl;
         }
     void Listarcliente (Tienda* tienda){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
-        if(tienda->clientes==nullptr || tienda->cantidadClientes<=0){ cout<<"No hay clientes registrados."<<endl; return; }
+        const char* ruta = "clientes.bin";
+        fstream archivo(ruta, ios::binary | ios::in);
+        if(!archivo){ cout<<"No se puede abrir el archivo de clientes: "<<ruta<<". Asegurese de que exista."<<endl; return; }
+        archivo.seekg(0, ios::end);
+        streampos tam = archivo.tellg();
+        if(tam < (streampos)sizeof(Cliente)){
+            cout<<"No hay clientes registrados en el archivo binario."<<endl;
+            return;
+        }
+        archivo.seekg(0, ios::beg);
+        Cliente c;
+        int contador=0;
         cout<<"Listado de clientes:\n";
-        for(int i=0;i<tienda->cantidadClientes;i++){
-            Cliente& c = tienda->clientes[i];
-            cout<<"Cedula: "<<c.cedula<<" | Nombre: "<<c.nombre<<" | Correo: "<<c.correo<<" | Telefono: "<<c.telefono<<" | Dirreccion: "<<c.dirreccion<<" | Fecha de registro: "<<c.fecharegitro<<"\n";
+        while(archivo.read(reinterpret_cast<char*>(&c), sizeof(Cliente))){
+            contador++;
+            cout<<"Cliente "<<contador<<": Cedula: "<<c.cedula<<" | Nombre: "<<c.nombre<<" | Correo: "<<c.correo<<" | Telefono: "<<c.telefono<<" | Dirreccion: "<<c.dirreccion<<" | Fecha de registro: "<<c.fecharegitro<<"\n";
         }
-        for (int i=0;i<tienda->cantidadClientes;i++){
-            cout<<"Cliente "<<i+1<<": Cedula: "<<tienda->clientes[i].cedula<<" | Nombre: "<<tienda->clientes[i].nombre<<" | Correo: "<<tienda->clientes[i].correo<<" | Telefono: "<<tienda->clientes[i].telefono<<" | Dirreccion: "<<tienda->clientes[i].dirreccion<<" | Fecha de registro: "<<tienda->clientes[i].fecharegitro<<"\n";      
-        }
-
+        archivo.close();
+        if(contador==0){ cout<<"No hay clientes registrados en el archivo binario."<<endl; }
     }
 
     void Creartransaccion(Tienda* tienda){
@@ -906,11 +903,24 @@ void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
 }
     void Buscartransaccion (Tienda* tienda, int id){
         if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
-        if(tienda->transacciones==nullptr || tienda->cantidadTransacciones<=0){ cout<<"No hay transacciones registradas."<<endl; return; }
+        const char* ruta = "transacciones.bin";
+        fstream archivo(ruta, ios::binary | ios::in);
+        if(!archivo){
+            cout<<"No se puede abrir el archivo de transacciones: "<<ruta<<". Asegurese de que exista."<<endl;
+            return;
+        }
+        archivo.seekg(0, ios::end);
+        streampos tam = archivo.tellg();
+        if(tam < (streampos)sizeof(Transaccion)){
+            cout<<"No hay transacciones registradas en el archivo binario."<<endl;
+            return;
+        }
+        archivo.seekg(0, ios::beg);
+
+        Transaccion t;
         bool encontrado = false;
-        for(int i=0;i<tienda->cantidadTransacciones;i++){
-            if(tienda->transacciones[i].id == id){
-                Transaccion& t = tienda->transacciones[i];
+        while(archivo.read(reinterpret_cast<char*>(&t), sizeof(Transaccion))){
+            if(t.id == id){
                 cout<<"Transacción encontrada: ID: "<<t.id<<" | Tipo: "<<t.tipo<<" | Fecha: "<<t.fecha<<" | Descripcion: "<<t.descripcion<<"\n";
                 encontrado = true;
                 break;
@@ -919,48 +929,35 @@ void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
         if(!encontrado){
             cout<<"Transacción con ID "<<id<<" no encontrada."<<endl;
         }
-        for (int i=0;i<tienda->cantidadTransacciones;i++){
-            cout<<"Transaccion "<<i+1<<": ID: "<<tienda->transacciones[i].id<<" | Tipo: "<<tienda->transacciones[i].tipo<<" | Fecha: "<<tienda->transacciones[i].fecha<<" | Descripcion: "<<tienda->transacciones[i].descripcion<<"\n";
-        }
-        for (int i=0;i<tienda->cantidadTransacciones;i++){
-            if(tienda->transacciones[i].id==id){
-                cout<<"Transaccion encontrada: ID: "<<tienda->transacciones[i].id<<" | Tipo: "<<tienda->transacciones[i].tipo<<" | Fecha: "<<tienda->transacciones[i].fecha<<" | Descripcion: "<<tienda->transacciones[i].descripcion<<"\n";
-                return;
-            }
-        }
-        cout<<"Transaccion con ID "<<id<<" no encontrada."<<endl;
     }
 
+bool buscarCliente(Tienda* tienda,int cedula,string &nombre,string &direccion){
+    if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return false; }
+    const char* ruta = "clientes.bin";
+    fstream archivo(ruta, ios::binary | ios::in);
+    if(!archivo){
+        cout<<"No se puede abrir el archivo de clientes: "<<ruta<<". Asegurese de que exista."<<endl;
+        return false;
+    }
+    archivo.seekg(0, ios::end);
+    streampos tam = archivo.tellg();
+    if(tam < (streampos)sizeof(Cliente)){
+        cout<<"No hay clientes registrados en el archivo binario."<<endl;
+        return false;
+    }
+    archivo.seekg(0, ios::beg);
 
-
-
-    
-    
-
-string buscarCliente(Tienda* tienda,int cedula){
-    cout<<"Si entre aqui"<<endl;
-    if(tienda->clientes!=nullptr){
-        int posicion=-1;
-        for(int i=0;i<tienda->cantidadClientes;i++){
-            cout<<"Hoaa"<<endl;
-            if(tienda->clientes[i].cedula==cedula){
-                cout<<"adios"<<endl;
-                posicion=i;
-                break;
-            }
-        }
-        if(posicion!=-1){
-            cout<<"nombre del cliente: "<<tienda->clientes[posicion].nombre;
-            return tienda->clientes[posicion].nombre,tienda->clientes[posicion].dirreccion;
-        }
-        else{
-            
+    Cliente c;
+    while(archivo.read(reinterpret_cast<char*>(&c), sizeof(Cliente))){
+        if(c.cedula == cedula){
+            nombre = c.nombre;
+            direccion = c.dirreccion;
+            return true;
         }
     }
-    else{
-        cout<<"Tienda es null ptr:"<<tienda->clientes[0].cedula;
-        return "no existe ese cliente";
-    }
+
+    cout<<"No existe un cliente con cedula "<<cedula<<" en el archivo binario."<<endl;
+    return false;
 }
 
 void eliminarProducto(Tienda* tienda,int id){
@@ -1192,29 +1189,20 @@ void venta(Tienda* tienda,archivoHeader producto,archivoHeader proveedor,fstream
     int cedu;
     string input;
     string respuesta;
-    string nombre,direccion;
+    string nombre, direccion;
     cout<<"Inserte la cedula del cliente";
     cin>>cedu;
-    nombre,direccion=buscarCliente(tienda,cedu);
-    if(direccion=="no existe ese cliente"||nombre=="no existe ese cliente"){
-        cout<<nombre<<" desea registrarlo?"<<endl;
-        cout<<"Introduzca S para registrarlo o N para cancelar";
+    if(!buscarCliente(tienda, cedu, nombre, direccion)){
+        cout<<"Cliente no encontrado. Desea registrarlo? (S/N): ";
         cin>>respuesta;
         if(respuesta=="S"||respuesta=="s"){
-           
-           
             Crearcliente(tienda);
+        } else {
+            cout<<"Venta cancelada."<<endl;
+            return;
         }
-        else if(respuesta=="CANCELAR" || respuesta=="0") {
-            cout<<"Creación cancelada."<<endl; return; 
-            return ;
-        }
-    }
-        
-    
-
-    else{
-        cout<<"Nombre del cliente: "<<nombre<<" Cedula: "<<cedu<<" Direccion: "<<direccion;
+    } else {
+        cout<<"Nombre del cliente: "<<nombre<<" Cedula: "<<cedu<<" Direccion: "<<direccion<<"\n";
         int opt,id,sub,cantp=1;
         bool cantver=0;
         tienda->transacciones[tienda->siguienteIdTransaccion-1].productos=new Productoventa[cantp];
@@ -1555,11 +1543,19 @@ int main(){
                     case 1:
                         Crearcliente(&tienda);
                         break;
-                    case 2:
+                    case 2:{
                         cout<<"Inserte la cedula del cliente";
                         cin>>id;
-                        id,nombre,direccion=buscarCliente(&tienda,id);
+                        {
+                            string nombre, direccion;
+                            if(buscarCliente(&tienda,id,nombre,direccion)){
+                                cout<<"Cliente encontrado: "<<nombre<<" | Cedula: "<<id<<" | Direccion: "<<direccion<<"\n";
+                            } else {
+                                cout<<"Cliente no encontrado."<<endl;
+                            }
+                        }
                         break;
+                    }
                     case 3:
                         cout<<"Inserte la cedula del cliente";
                         cin>>id;
