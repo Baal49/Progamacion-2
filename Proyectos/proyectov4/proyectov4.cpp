@@ -510,19 +510,23 @@ Producto buscarProducto(archivoHeader* productosheader,fstream& archivo,int id,s
     bool encontrado =0;
     try{ id; }
     catch(...){ cout<<"ID invalido."<<endl;  }
+    archivo.clear();
+    archivo.seekg(0,ios::beg);
     for(int i=0;i<productosheader->cantidadRegistros;i++){
         archivo.read(reinterpret_cast<char*>(&p),sizeof(p));
         if(p.id == id){
             posicion=i;
             cout<<"Producto encontrado: ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<"\n";
-            encontrado=1;  
-            break;
+            encontrado=1; 
+            archivo.clear(); 
+            cout<<"ola"<<endl;
             return p;
         }
         else{
             i++;
         }
     }
+    archivo.clear();
     if(!encontrado){
         cout<<"Producto no encontrado."<<endl;
     }
@@ -1270,7 +1274,7 @@ void eliminarheader(archivoHeader header,fstream& archivo,char* ruta,int opcion,
 
 }
 void venta(Tienda* tienda,archivoHeader producto,archivoHeader proveedor,fstream& archivop,fstream& archivoprov){
-    Producto* p;
+    Producto p;
     int cedu;
     string input;
     string respuesta;
@@ -1295,17 +1299,17 @@ void venta(Tienda* tienda,archivoHeader producto,archivoHeader proveedor,fstream
             int cant;
             cout<<"introduce el id del producto que se va a llevar: ";
             cin>>id;
-            *p=p->buscarProducto(&producto,archivop,id,"",1);
-            cout<<"El precio del producto es: "<<p->precio<<endl;
+            p=p.buscarProducto(&producto,archivop,id,"",1);
+            cout<<"El precio del producto es: "<<p.precio<<endl;
             do{
             cout<<"introduce la cantidad del producto que se va a llevar: ";
             cin>>cant;
-            if(cant>p->stock){
-                cout<<"el producto no tiene esa cantidad intentelo de nuevo La existencia del producto es: "<<p->stock;
+            if(cant>p.stock){
+                cout<<"el producto no tiene esa cantidad intentelo de nuevo La existencia del producto es: "<<p.stock;
                 cantver=1;
             }
         }while(cantver==1);
-        sub+=(cant*p->precio);
+        sub+=(cant*p.precio);
         string input;
         /*tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].id=p->id;
         tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].cantidad=cant;
@@ -1337,7 +1341,7 @@ void venta(Tienda* tienda,archivoHeader producto,archivoHeader proveedor,fstream
     }
 }
 void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archivoHeader cliente,fstream& archivop,fstream& archivoprov,fstream& archivoc){
-    Producto* p;
+    Producto p;
     Proveedor* prov;
     int idprov;
     char respuesta;
@@ -1366,10 +1370,10 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
             int cant;
             cout<<"introduce el id del producto que se va a comprar: ";
             cin>>id;
-            *p=p->buscarProducto(&producto,archivop,id,"",1);
+            p=p.buscarProducto(&producto,archivop,id,"",1);
             //if(p->precio>0){
             
-            cout<<"El precio del producto es: "<<p->precio<<endl;
+            cout<<"El precio del producto es: "<<p.precio<<endl;
             do{
             cout<<"introduce la cantidad del producto que se va a comprar: ";
             cin>>cant;
@@ -1378,7 +1382,7 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
                 cantver=1;
             }
         }while(cantver==1);
-        sub+=(cant*p->precio);
+        sub+=(cant*p.precio);
         string input;
         /*tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].id=p->id;
         tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].cantidad=cant;
