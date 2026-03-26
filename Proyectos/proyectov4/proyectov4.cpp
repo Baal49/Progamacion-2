@@ -299,7 +299,8 @@ class Productoventa{
 };
 class Transaccion {
     public:
-    int id;
+    int idt=0;
+    int idcp=0;
     int tipo;
     float total;
     char fecha[11];
@@ -902,11 +903,11 @@ void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
         if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
         strncpy(temp.descripcion, input.c_str(), sizeof(temp.descripcion)-1);
         //Asignar ID autoincremental
-        temp.id = tienda->siguienteIdTransaccion++;
+        temp.idt = tienda->siguienteIdTransaccion++;
 
         // Confirmación
         cout<<"\nResumen de la transacción:"<<endl;
-        cout<<"ID: "<<temp.id<<" | Tipo: "<<temp.tipo<<" | Fecha: "<<temp.fecha<<" | Descripcion: "<<temp.descripcion<<"\n";
+        cout<<"ID: "<<temp.idt<<" | Tipo: "<<temp.tipo<<" | Fecha: "<<temp.fecha<<" | Descripcion: "<<temp.descripcion<<"\n";
         cout<<"¿Desea guardar esta transacción? (S/N): ";
         cin >> resp ;
         cin.ignore(numeric_limits<streamsize>::max(),'\n'); // Limpiar el buffer después de leer la respuesta
@@ -916,7 +917,7 @@ void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
                 //redimensionarTransaccion(tienda);
                 cout << "Arreglo de transacciones redimensionado a capacidad " << tienda->capacidadTransacciones << "." << endl;
                 for (int i = 0; i < tienda->cantidadTransacciones; i++) {
-                    cout << "Transaccion " << i + 1 << ": ID: " << tienda->transacciones[i].id << " | Tipo: " << tienda->transacciones[i].tipo << " | Fecha: " << tienda->transacciones[i].fecha << " | Descripcion: " << tienda->transacciones[i].descripcion << "\n";
+                    cout << "Transaccion " << i + 1 << ": ID: " << tienda->transacciones[i].idt << " | Tipo: " << tienda->transacciones[i].tipo << " | Fecha: " << tienda->transacciones[i].fecha << " | Descripcion: " << tienda->transacciones[i].descripcion << "\n";
                     
 }
             tienda->transacciones[tienda->cantidadTransacciones++] = temp;
@@ -945,8 +946,8 @@ void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
         Transaccion t;
         bool encontrado = false;
         while(archivo.read(reinterpret_cast<char*>(&t), sizeof(Transaccion))){
-            if(t.id == id){
-                cout<<"Transacción encontrada: ID: "<<t.id<<" | Tipo: "<<t.tipo<<" | Fecha: "<<t.fecha<<" | Descripcion: "<<t.descripcion<<"\n";
+            if(t.idt == id){
+                cout<<"Transacción encontrada: ID: "<<t.idt<<" | Tipo: "<<t.tipo<<" | Fecha: "<<t.fecha<<" | Descripcion: "<<t.descripcion<<"\n";
                 encontrado = true;
                 break;
             }
@@ -1331,7 +1332,7 @@ void venta(Tienda* tienda,archivoHeader producto,archivoHeader proveedor,fstream
         cantp++;
     }while(opt!=1&&opt!=2);
         }while(opt==1);
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].id=tienda->siguienteIdTransaccion;
+        tienda->transacciones[tienda->siguienteIdTransaccion-1].idt=tienda->siguienteIdTransaccion;
         tienda->transacciones[tienda->siguienteIdTransaccion-1].tipo=1;
         //tienda->transacciones[tienda->siguienteIdTransaccion-1].idRelacionado=cedu;
         tienda->transacciones[tienda->siguienteIdTransaccion-1].total=sub;
@@ -1340,9 +1341,11 @@ void venta(Tienda* tienda,archivoHeader producto,archivoHeader proveedor,fstream
 
     }
 }
-void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archivoHeader cliente,fstream& archivop,fstream& archivoprov,fstream& archivoc){
+void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archivoHeader cliente,archivoHeader& transaccion,archivoHeader& pt,fstream& archivop,fstream& archivoprov,fstream& archivoc,fstream& archivot,fstream& archivopt){
     Producto p;
     Proveedor* prov;
+    Productoventa venta;
+    Transaccion t;
     int idprov;
     char respuesta;
     string nombre,direccion;
@@ -1364,7 +1367,16 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         cout<<"Nombre del proveedor: "<<nombre<<" ID: "<<idprov;
         int opt,id,sub,cantp=1;
         bool cantver=0;
-        
+        int x=0;
+        t.idcp=prov->id;
+        archivopt.clear();
+        if(pt.cantidadRegistros>0){
+            archivopt.seekp((pt.cantidadRegistros+1)*sizeof(Productoventa),ios::beg);
+        }
+        else{
+            archivopt.seekp((1)*sizeof(Productoventa),ios::beg);
+        }
+
         //tienda->transacciones[tienda->siguienteIdTransaccion-1].productos=new Productoventa[cantp];
         do{
             int cant;
@@ -1372,8 +1384,9 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
             cin>>id;
             p=p.buscarProducto(&producto,archivop,id,"",1);
             //if(p->precio>0){
-            
+            venta.idprod=p.id;
             cout<<"El precio del producto es: "<<p.precio<<endl;
+            venta.preciounidad=p.precio;
             do{
             cout<<"introduce la cantidad del producto que se va a comprar: ";
             cin>>cant;
@@ -1382,19 +1395,23 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
                 cantver=1;
             }
         }while(cantver==1);
+        venta.cantidad=cant;
         sub+=(cant*p.precio);
         string input;
-        /*tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].id=p->id;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].cantidad=cant;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].productos[cantp-1].preciounidad=p->precio;*/
+        venta.idt=transaccion.proximoID;
+        archivopt.write(reinterpret_cast<char*>(&venta),sizeof(Productoventa));
+        archivopt.flush();
+        archivopt.clear();
+        pt.cantidadRegistros++;
+        pt.proximoID++;
         do{
         cout<<"desea incluir otro producto? S para si N para no";
         getline(cin,input);
-        if(input=="S"||input=="s"){
+        if(input=="S"||input=="s"||input=="SI"||input=="si"){
             opt=1;
             //redimensionarProductosventa(tienda->transacciones);
         }
-        else if(input=="N"||input=="n"){
+        else if(input=="N"||input=="n"||input=="NO"||input=="no"){
             opt=0;
         }
         else{
@@ -1404,28 +1421,42 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         cantp++;
     }while(opt!=1&&opt!=2);
         }while(opt==1);
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].id=tienda->siguienteIdTransaccion;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].tipo=2;
-        //tienda->transacciones[tienda->siguienteIdTransaccion-1].idRelacionado=idprov;
-        tienda->transacciones[tienda->siguienteIdTransaccion-1].total=sub;
+        t.idt=transaccion.proximoID;
+        t.total=sub;
+        t.tipo=1;
         cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
-        string input;
-        strncpy(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha, input.c_str(), sizeof(tienda->transacciones[tienda->siguienteIdTransaccion-1].fecha)-1);
-
-    
-
+        string input,input2;
+        strncpy(t.fecha, input.c_str(), sizeof(t.fecha)-1);
+        cout<<"Quieres ponerle descripcion a la transaccion? S para si N para no"<<endl;
+        cin>>input2;
+        if(input2=="S"||input=="s"){
+            cout<<"Introduzca la descripcion de la transaccion"<<endl;
+            string input3;
+            strncpy(t.descripcion,input3.c_str(),sizeof(t.descripcion));
+        }
+        archivot.clear();
+        if(transaccion.cantidadRegistros>0){
+            archivot.seekp((transaccion.cantidadRegistros+1)*sizeof(transaccion),ios::beg);
+        }
+        else{
+            archivot.seekp((1)*sizeof(transaccion),ios::beg);
+        }
+        archivot.write(reinterpret_cast<char*>(&t),sizeof(transaccion));
+        transaccion.cantidadRegistros++;
+        transaccion.proximoID++;
+        transaccion.registrosActivos++;
 }
 }
 
 int main(){
     Tienda tienda;
-    archivoHeader productos,proveedores,clientes,transacciones;
+    archivoHeader productos,proveedores,clientes,transacciones,pt;
     strcpy(tienda.nombre, "Farmacia pipo");
     Producto p;
     Proveedor prov;
     Cliente c;
     Transaccion t;
-    int posiprod=0,posiprov=0,posic=0,posit=0;
+    int posiprod=0,posiprov=0,posic=0,posit=0,positp=0;
     fstream archivoproductos("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/productos.bin",ios::binary | ios::in|ios::out);
     archivoproductos.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/productos.bin", ios::binary | ios::out);
     archivoproductos.close();
@@ -1508,6 +1539,7 @@ int main(){
         posiprov=archivoproveedores.tellg()/sizeof(archivoHeader);
         cout << "Nueva posicion de lectura: " << posiprod << endl;
         cout<<"La cantidad de productos es: "<<productos.cantidadRegistros<<endl;
+        cout<<"No se encontraron productos."<<endl;
         archivoproductos.clear(); 
     }
     else{
@@ -1516,7 +1548,23 @@ int main(){
         cout<<"La cantidad de productos es: "<<productos.cantidadRegistros<<endl;
         archivoproductos.clear(); 
     }
-   
+    fstream archivopt("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/productostransaccion.bin",ios::binary|ios::in|ios::out);
+    archivopt.clear();
+    archivopt.seekg(0,ios::beg);
+    archivopt.seekp(0,ios::beg);
+    archivopt.read(reinterpret_cast<char*>(&pt),sizeof(archivoHeader));
+    archivopt.clear();
+    positp=archivopt.tellg()/sizeof(archivoHeader);
+    if(positp<=0){
+        pt.cantidadRegistros=0;
+        pt.proximoID=0;
+        pt.registrosActivos=0;
+        pt.version=0;
+        cout<<"no se encontraron productos de transacciones"<<endl;
+    }
+    else{
+        cout<<"Se encontraron Productos de transacciones."<<endl;
+    }
     int opcion;
     do{
         cin.ignore(numeric_limits<streamsize>::max(),'\n');
@@ -1727,7 +1775,7 @@ int main(){
                 cin  >>opcion;
                 switch(opcion){
                     case 1:
-                        compra(&tienda,productos,proveedores,clientes,archivoproductos,archivoproveedores,archivoclientes);
+                        compra(&tienda,productos,proveedores,clientes,transacciones,pt,archivoproductos,archivoproveedores,archivoclientes,archivotransacciones,archivopt);
                         break;
                     case 2:
                         venta(&tienda,productos,proveedores,archivoproductos,archivoproveedores);
