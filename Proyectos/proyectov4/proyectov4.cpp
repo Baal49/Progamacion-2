@@ -927,30 +927,38 @@ void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
         }
 }
 }
-    void Buscartransaccion (Tienda* tienda, int id){
-        if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
-        const char* ruta = "transacciones.bin";
-        fstream archivo(ruta, ios::binary | ios::in);
-        if(!archivo){
-            cout<<"No se puede abrir el archivo de transacciones: "<<ruta<<". Asegurese de que exista."<<endl;
-            return;
-        }
-        archivo.seekg(0, ios::end);
-        streampos tam = archivo.tellg();
-        if(tam < (streampos)sizeof(Transaccion)){
+    void Buscartransaccion (archivoHeader&transaccion,archivoHeader pt,fstream& archivot,fstream& archivopt,int id){
+        if(!archivot.is_open()){ cout<<"Tienda no inicializada."<<endl; return; }
+        /*if(transaccion.cantidadRegistros<=0){
             cout<<"No hay transacciones registradas en el archivo binario."<<endl;
             return;
-        }
-        archivo.seekg(0, ios::beg);
-
+        }*/
+        archivot.clear();
+        archivot.seekg(0, ios::beg);
+        archivot.seekp(0,ios::beg);
+        archivopt.clear();
+        archivopt.seekg(0,ios::beg);
+        archivopt.seekp(0,ios::beg);
         Transaccion t;
+        Productoventa p;
+        int x=0;
         bool encontrado = false;
-        while(archivo.read(reinterpret_cast<char*>(&t), sizeof(Transaccion))){
+        while(archivot.read(reinterpret_cast<char*>(&t), sizeof(Transaccion))||transaccion.cantidadRegistros>x){
+            cout<<"Transacción : ID: "<<t.idt<<" | Tipo: "<<t.tipo<<" | Fecha: "<<t.fecha<<" | Descripcion: "<<t.descripcion<<"\n";
             if(t.idt == id){
                 cout<<"Transacción encontrada: ID: "<<t.idt<<" | Tipo: "<<t.tipo<<" | Fecha: "<<t.fecha<<" | Descripcion: "<<t.descripcion<<"\n";
                 encontrado = true;
-                break;
+                while(archivopt.read(reinterpret_cast<char*>(&p),sizeof(Productoventa))){
+                    if(t.idt==p.idt){
+                        cout<<"id producto: "<<p.idprod<<" precio unitario:"<<p.preciounidad<<" cantidad: "<<p.cantidad<<endl;
+                    }
+                    archivot.clear();
+                }
+                archivot.clear();
+                return;
             }
+            archivot.clear();
+            x++;
         }
         if(!encontrado){
             cout<<"Transacción con ID "<<id<<" no encontrada."<<endl;
@@ -1405,7 +1413,8 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         pt.cantidadRegistros++;
         pt.proximoID++;
         do{
-        cout<<"desea incluir otro producto? S para si N para no";
+        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+        cout<<"desea incluir otro producto? S para si N para no"<<endl;
         getline(cin,input);
         if(input=="S"||input=="s"||input=="SI"||input=="si"){
             opt=1;
@@ -1419,11 +1428,12 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
             opt=2;
         }
         cantp++;
-    }while(opt!=1&&opt!=2);
+    }while(opt==1||opt==2);
         }while(opt==1);
         t.idt=transaccion.proximoID;
         t.total=sub;
         t.tipo=1;
+        cin.ignore(numeric_limits<streamsize>::max(),'\n');
         cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
         string input,input2;
         strncpy(t.fecha, input.c_str(), sizeof(t.fecha)-1);
@@ -1437,15 +1447,19 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         archivot.clear();
         if(transaccion.cantidadRegistros>0){
             archivot.seekp((transaccion.cantidadRegistros+1)*sizeof(transaccion),ios::beg);
+           cout<<">0"<<endl; 
         }
         else{
             archivot.seekp((1)*sizeof(transaccion),ios::beg);
+            cout<<"=0"<<endl;
         }
         archivot.write(reinterpret_cast<char*>(&t),sizeof(transaccion));
+        archivot.flush();
+        cout<<"Transaccion aceptada Id de la transaccion es: "<<t.idt<<endl;
         transaccion.cantidadRegistros++;
         transaccion.proximoID++;
         transaccion.registrosActivos++;
-}
+}   cout<<"cantidad de transacciones: "<<transaccion.cantidadRegistros;
 }
 
 int main(){
@@ -1781,13 +1795,17 @@ int main(){
                         venta(&tienda,productos,proveedores,archivoproductos,archivoproveedores);
                         break;
                     case 3:
-                        //editarCliente(&tienda);
+                        cout<<"Introdusca el id de la transaccion: ";
+                        cin>>id;
+                        Buscartransaccion(transacciones,pt,archivotransacciones,archivopt,id);
                         break;
                     case 4:
                         //listarClientes(&tienda);
                         break;
                     case 5:
+                    cin.ignore(numeric_limits<streamsize>::max(),'\n');
                         //eliminarCliente(&tienda, 1); 
+                        opcion=0;
                         break;
                     case 0:
                         cout<<"Volviendo al menú principal..."<<endl;
