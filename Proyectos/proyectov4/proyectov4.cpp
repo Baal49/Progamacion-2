@@ -69,11 +69,11 @@ class Proveedor {
                 cout<<"Arreglo de proveedores redimensionado a capacidad "<<tienda->capacidadProveedores<<"."<<endl;
             }*/
             if(proveedor.cantidadRegistros>0){
-                archivo->seekp((proveedor.cantidadRegistros)*sizeof(Proveedor),ios::beg);
+                archivo->seekp((proveedor.cantidadRegistros+posi)*sizeof(Proveedor),ios::beg);
                 cout<<"mayor que 0";
             }
             else{
-                archivo->seekp((posi)*sizeof(Proveedor),ios::beg);
+                archivo->seekp((0)*sizeof(Proveedor),ios::beg);
                 cout<<"igual que 0";
             }
             archivo->write(reinterpret_cast<char*>(&temp),sizeof(Proveedor));
@@ -380,14 +380,19 @@ class Producto {
             if(input=="CANCELAR" ||input=="cancelar" || input=="Cancelar"|| input=="0"){ cout<<"Creación cancelada."<<endl; return; }
             int idProv = 0;
              idProv = stoi(input); 
+             archivoproveedor.clear();
+             archivoproveedor.seekg(0,ios::beg);
             try{
                 Proveedor p;
+                int x=0;
                 while(archivoproveedor.read(reinterpret_cast<char*>(&p),sizeof(Proveedor))){
                     cout<<"id del proveedor: "<<p.id<<" nombre del proveedor: "<<p.nombre<<endl;
                     if(p.id==idProv){
                         proveedorValido=true;
+                        archivoproveedor.clear();
                         break;
                     }
+                    archivoproveedor.clear();
                 }
             }
             catch(...){
@@ -458,7 +463,7 @@ class Producto {
             else{
                 archivoproducto.clear();
                 archivoproveedor.clear();
-                archivoproducto.seekp((posiprod+1)*sizeof(Producto),ios::beg);
+                archivoproducto.seekp((0)*sizeof(Producto),ios::beg);
                 cout<<"entro aqui 0"<<endl;
             }
             archivoproducto.write(reinterpret_cast<char*>(&temp),sizeof(Producto)) ;
@@ -1228,8 +1233,9 @@ void editarProducto(archivoHeader producto,fstream* archivo,fstream* archivoprov
     }while(ola!=0&&ola!=7);
 }
 
-void eliminarheader(archivoHeader header,fstream& archivo,char* ruta,int opcion,int posi){
+void eliminarheader(archivoHeader header,fstream& archivo,char* ruta,int opcion,int posi,bool exist){
     const char* rutaTemp = "headertemp.bin";
+    int x=0;
     if(!archivo.is_open()){
         cout<<"No se pudo abrir el archivo"<<endl;
         return;
@@ -1243,14 +1249,22 @@ void eliminarheader(archivoHeader header,fstream& archivo,char* ruta,int opcion,
         Producto p;
         int total=0;
         archivo.clear();
-        archivo.seekg(posi*sizeof(archivoHeader),ios::beg);
-        while (archivo.read(reinterpret_cast<char*>(&p),sizeof(Producto)))
+        if(exist==1){
+            archivo.seekg(posi*sizeof(archivoHeader),ios::beg);
+        }
+        else{
+            archivo.seekg(0,ios::beg);
+        }
+        while (archivo.read(reinterpret_cast<char*>(&p),sizeof(Producto))||header.cantidadRegistros>x)
         {
+            cout<<"id: "<<p.id<<" nombre: "<<p.nombre<<" codigo: "<<p.codigo<<endl;
             archivo.clear();
             archivotemp.clear();
             archivotemp.seekp(0,ios::beg);
             archivotemp.write(reinterpret_cast<char*>(&p), sizeof(Producto));
+            archivo.clear();
             total++;
+            x++;
         }
         archivotemp.close();
         archivo.close();
@@ -1269,14 +1283,23 @@ void eliminarheader(archivoHeader header,fstream& archivo,char* ruta,int opcion,
         Proveedor p;
         int total=0;
         archivo.clear();
-        archivo.seekg(posi*sizeof(archivoHeader),ios::beg);
-        while (archivo.read(reinterpret_cast<char*>(&p),sizeof(Proveedor)))
+        if(exist==1){
+            archivo.seekg(posi*sizeof(archivoHeader),ios::beg);
+        }
+        else{
+            archivo.seekg(0,ios::beg);
+        }
+        while (archivo.read(reinterpret_cast<char*>(&p),sizeof(Proveedor))||x<header.cantidadRegistros)
         {
+            
             archivo.clear();
             archivotemp.clear();
             archivotemp.seekp(0,ios::beg);
+            cout<<"ID: "<<p.id<<" | Nombre: "<<p.nombre<<"\n";
             archivotemp.write(reinterpret_cast<char*>(&p), sizeof(Proveedor));
+            archivo.clear();
             total++;
+            x++;
         }
         archivotemp.close();
         archivo.close();
@@ -1373,8 +1396,19 @@ void venta(archivoHeader& producto,archivoHeader transaccion,archivoHeader& clie
         t.idt=transaccion.proximoID++;
         t.total=sub;
         t.tipo=2;
+        //cin.ignore(numeric_limits<streamsize>::max(),'\n');
+        string input,input2;
         cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
+        cin >> input;
+        
         strncpy(t.fecha, input.c_str(), sizeof(t.fecha)-1);
+        cout<<"Quieres ponerle descripcion a la transaccion? S para si N para no"<<endl;
+        cin>>input2;
+        if(input2=="S"||input=="s"){
+            cout<<"Introduzca la descripcion de la transaccion"<<endl;
+            string input3;
+            strncpy(t.descripcion,input3.c_str(),sizeof(t.descripcion));
+        }
         archivot.clear();
         if(transaccion.cantidadRegistros<=0){
             archivot.seekp((transaccion.cantidadRegistros+1)*sizeof(transaccion),ios::beg);
@@ -1472,15 +1506,17 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         t.idt=transaccion.proximoID++;
         t.total=sub;
         t.tipo=1;
-        cin.ignore(numeric_limits<streamsize>::max(),'\n');
-        cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
+        //cin.ignore(numeric_limits<streamsize>::max(),'\n');
         string input,input2;
+        cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
+        getline(cin,input);
         strncpy(t.fecha, input.c_str(), sizeof(t.fecha)-1);
         cout<<"Quieres ponerle descripcion a la transaccion? S para si N para no"<<endl;
         cin>>input2;
         if(input2=="S"||input=="s"){
             cout<<"Introduzca la descripcion de la transaccion"<<endl;
             string input3;
+            getline(cin,input3);
             strncpy(t.descripcion,input3.c_str(),sizeof(t.descripcion));
         }
         archivot.clear();
@@ -1504,6 +1540,7 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
 
 int main(){
     Tienda tienda;
+    bool existp,existprov,existc,existt,existpt;
     archivoHeader productos,proveedores,clientes,transacciones,pt;
     Producto p;
     Proveedor prov;
@@ -1528,10 +1565,12 @@ int main(){
         proveedores.proximoID=1;
         proveedores.registrosActivos=0;
         proveedores.version=0;
+        existprov=0;
         cout<<"posicion actual de proveedores"<<posiprov<<endl;
         cout<<"No se encontraron proveedores."<<endl;
     }
     else{
+        existprov=1;
         cout<<"posicion actual de proveedores"<<posiprov<<endl;
         cout<<"Se encontraron proveedores."<<endl;
     }
@@ -1550,6 +1589,7 @@ int main(){
     posic=archivoclientes.tellg()/sizeof(archivoHeader);
     archivoclientes.clear(); 
     if(posic<=0){
+        existc=0;
         clientes.cantidadRegistros=0;
         clientes.proximoID=0;
         clientes.registrosActivos=0;
@@ -1557,6 +1597,7 @@ int main(){
         cout<<"No se encontraron clientes."<<endl;
     }
     else{
+        existc=1;
         cout<<"Se encontraron clientes."<<endl;
         cout<<"El valor de clientes es: "<<clientes.cantidadRegistros<<endl;
         cout << "Nueva posicion de lectura: " <<posic<< endl;
@@ -1569,6 +1610,7 @@ int main(){
     archivotransacciones.read(reinterpret_cast<char*>(&transacciones),sizeof(archivoHeader));
     posit=archivotransacciones.tellg()/sizeof(archivoHeader);
     if(posit<=0){
+        existt=0;
         transacciones.cantidadRegistros=0;
         transacciones.proximoID=0;
         transacciones.registrosActivos=0;
@@ -1576,6 +1618,7 @@ int main(){
         cout<<"No se encontraron transacciones."<<endl;
     }
     else{
+        existt=1;
         cout<<"Se encontraron transacciones."<<endl<<"La cantidad de transacciones es: "<<transacciones.cantidadRegistros;
     }
     archivoproductos.clear(); 
@@ -1584,18 +1627,20 @@ int main(){
     archivoproductos.read(reinterpret_cast<char*>(&productos),sizeof(archivoHeader));
     posiprod=archivoproductos.tellg()/sizeof(archivoHeader);
     archivoproductos.clear(); 
-    if(posiprov<=0){
+    if(posiprod<=0){
+        existp=0;
         productos.cantidadRegistros=0;
         productos.proximoID=0; 
         productos.registrosActivos=0;
         productos.version=0;
-        posiprov=archivoproveedores.tellg()/sizeof(archivoHeader);
+        posiprod=archivoproductos.tellg()/sizeof(archivoHeader);
         cout << "Nueva posicion de lectura: " << posiprod << endl;
         cout<<"La cantidad de productos es: "<<productos.cantidadRegistros<<endl;
         cout<<"No se encontraron productos."<<endl;
         archivoproductos.clear(); 
     }
     else{
+        existp=1;
         posiprod=archivoproductos.tellg()/sizeof(archivoHeader);
         cout << "Nueva posicion de lectura: " << posiprod << endl;
         cout<<"La cantidad de productos es: "<<productos.cantidadRegistros<<endl;
@@ -1856,9 +1901,8 @@ int main(){
                 break;
             case 5:
                 cout<<"Saliendo del programa..."<<endl;
-                eliminarheader(productos,archivoproductos,rutaproductos,1,posiprod);
-                
-                eliminarheader(proveedores,archivoproveedores,rutaproveedores,1,posiprov);
+               /* eliminarheader(productos,archivoproductos,rutaproductos,1,posiprod,existp);
+                eliminarheader(proveedores,archivoproveedores,rutaproveedores,2,posiprov,existprov);*/
                 archivoproductos.seekg(0,ios::beg);
                 archivoproductos.write(reinterpret_cast<char*>(&productos),sizeof(archivoHeader));
                 archivoproveedores.seekg(0,ios::beg);
