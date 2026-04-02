@@ -1336,19 +1336,14 @@ void venta(archivoHeader& producto,archivoHeader transaccion,archivoHeader& clie
         archivopt.seekp((0)*sizeof(Productoventa),ios::beg);
     }
     if(c.cedula==0){
-        cout<<"Cliente no encontrado. Desea registrarlo? (S/N): ";
-        cin>>respuesta;
-        if(respuesta=="S"||respuesta=="s"){
-           // Crearcliente(tienda);
-        } else {
+        cout<<"Cliente no encontrado. Intente de nuevo o Cree otro cliente";
             cout<<"Venta cancelada."<<endl;
             return;
         }
-    } else {
+    else {
         cout<<"Nombre del cliente: "<<nombre<<" Cedula: "<<cedu<<" Direccion: "<<direccion<<"\n";
         int opt,id,sub,cantp=1;
         bool cantver=0;
-        //tienda->transacciones[tienda->siguienteIdTransaccion-1].productos=new Productoventa[cantp];
         do{
             int cant;
             cout<<"introduce el id del producto que se va a llevar: ";
@@ -1381,7 +1376,6 @@ void venta(archivoHeader& producto,archivoHeader transaccion,archivoHeader& clie
         getline(cin,input);
         if(input=="S"||input=="s"){
             opt=1;
-            //redimensionarProductosventa(tienda->transacciones);
         }
         else if(input=="N"||input=="n"){
             opt=0;
@@ -1437,7 +1431,6 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         cout<<"Introduzca S para registrarlo o N para cancelar";
         cin>>respuesta;
         if(respuesta=='S'||respuesta=='s'){
-             //prov->Crearproveedor(proveedor,archivoprov);
         }
         else{
             return ;
@@ -1456,8 +1449,6 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         else{
             archivopt.seekp((1)*sizeof(Productoventa),ios::beg);
         }
-
-        //tienda->transacciones[tienda->siguienteIdTransaccion-1].productos=new Productoventa[cantp];
         do{
             int cant;
             cout<<"introduce el id del producto que se va a comprar: ";
@@ -1491,7 +1482,6 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         getline(cin,input);
         if(input=="S"||input=="s"||input=="SI"||input=="si"){
             opt=1;
-            //redimensionarProductosventa(tienda->transacciones);
         }
         else if(input=="N"||input=="n"||input=="NO"||input=="no"){
             opt=2;
@@ -1582,7 +1572,7 @@ int main(){
     archivoclientes.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/clientes.bin",ios::binary|ios::out);
     archivoclientes.close();
     archivoclientes.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/clientes.bin",ios::binary|ios::in|ios::out);
-     archivoclientes.clear(); 
+    archivoclientes.clear(); 
     archivoclientes.seekp(0, ios::beg);
     archivoclientes.seekg(0, ios::beg);
     archivoclientes.read(reinterpret_cast<char*>(&clientes),sizeof(archivoHeader));
@@ -1725,7 +1715,7 @@ int main(){
                         editarProducto(productos,&archivoproductos,&archivoproveedores,id);
                         break;
                     case 4:
-                        //actualizarStock(&tienda);
+                        p.modificarstock(productos,archivoproductos,1,1,1);
                         break;
                     case 5:
                         p.listarProductos(&archivoproductos,&archivoproveedores,productos,proveedores,posiprod,posiprov);
