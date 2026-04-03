@@ -6,290 +6,11 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
+#include "PROVEEDOR.hpp"
+#include "HEADER.hpp"
+#include "PRODUCTO.hpp"
 using namespace std;
-struct archivoHeader{
-    int cantidadRegistros;      // Total histórico de registros
-    int proximoID;              // Siguiente ID a asignar (Autoincremental)
-    int registrosActivos;       // Registros que no están marcados como eliminados
-    int version;                // Control de versión del archivo
-};
-class Proveedor {
-    public:
-    int id=0;
-    char nombre[100];
-    // otros campos omitidos para brevedad
-    void Crearproveedor(archivoHeader& proveedor, fstream* archivo,int posi){
-    cin.ignore(numeric_limits<streamsize>::max(),'\n');
-    if(!archivo){ cout<<"El archivo no se a podido abrir"<<endl; return; }
-    string input;
-    int cantidad = 0;
-    cout<<"Ingrese la cantidad de proveedores a crear (o 'CANCELAR'/'0' para cancelar): ";
-    while(true){
-        if(!getline(cin, input)) return;
-        if(input=="CANCELAR" || input=="0") { cout<<"Creación cancelada."<<endl; return; }
-        try{ cantidad = stoi(input); }
-        catch(...){ cout<<"Entrada invalida. Ingrese un numero: "; continue; }
-        if(cantidad>0) break;
-        cout<<"La cantidad debe ser mayor a 0. Intente nuevamente: ";
-    }
-    for(int n=0;n<cantidad;n++){
-        Proveedor temp;
 
-        // Codigo (único)
-        while(true){
-            cout<<"Ingrese el Id del proveedor (o 'CANCELAR' para cancelar): ";
-            if(!getline(cin, input)) return;
-            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-            if(input.empty()){ cout<<"El codigo no puede estar vacío."<<endl; continue; }
-            //if(codigoDuplicado(tienda, input)) { cout<<"Codigo ya existe. Ingrese otro."<<endl; continue; }
-            temp.id=stoi(input);
-            break;
-        }
-
-        // Nombre
-        cout<<"Ingrese el nombre del proveedor (o 'CANCELAR' para cancelar): ";
-        if(!getline(cin,input)) return;
-        if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-        strncpy(temp.nombre, input.c_str(), sizeof(temp.nombre)-1);
-
-        
-        // Asignar ID autoincremental
-        //temp.id = tienda->siguienteIdProveedor++;
-
-        // Confirmación
-        cout<<"\nResumen del proveedor:"<<endl;
-        cout<<"ID: "<<temp.id<<" | Nombre: "<<temp.nombre<<endl;
-        cout<<"¿Desea guardar este proveedor? (S/N): ";
-        string resp;
-        if(!getline(cin,resp)) return;
-        if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
-            // si el arreglo está lleno, redimensionar duplicando capacidad
-            /*if(tienda->cantidadProveedores >= tienda->capacidadProveedores){
-                //redimensionarProveedor(tienda);
-                cout<<"Arreglo de proveedores redimensionado a capacidad "<<tienda->capacidadProveedores<<"."<<endl;
-            }*/
-            if(proveedor.cantidadRegistros>0){
-                archivo->seekp((proveedor.cantidadRegistros+posi)*sizeof(Proveedor),ios::beg);
-                cout<<"mayor que 0";
-            }
-            else{
-                archivo->seekp((0)*sizeof(Proveedor),ios::beg);
-                cout<<"igual que 0";
-            }
-            archivo->write(reinterpret_cast<char*>(&temp),sizeof(Proveedor));
-            proveedor.cantidadRegistros++;
-            proveedor.registrosActivos++;
-            proveedor.proximoID++;
-            cout<<"cantidadregistros: "<<proveedor.cantidadRegistros<<endl;
-            cout<<"registros activos: "<<proveedor.registrosActivos;
-            
-            cout<<"Proveedor guardado."<<endl;
-        } else {
-            cout<<"Proveedor descartado por el usuario."<<endl;
-        }
-    }
-}
-void listarProveedores(archivoHeader proveedor,fstream* archivoprov,int posi){
-        if(!archivoprov){ cout<<"archivo no inicializado."<<endl; return; }
-        if(proveedor.cantidadRegistros<=0){ cout<<"No hay proveedores registrados."<<endl; return; }
-        cout<<"Listado de proveedores:\n";
-        Proveedor p;
-        int x=0;
-        archivoprov->clear();
-        archivoprov->seekg(0,ios::beg);
-        while(archivoprov->read(reinterpret_cast<char*>(&p),sizeof(Proveedor))||x<proveedor.cantidadRegistros){
-            cout<<"ID: "<<p.id<<" | Nombre: "<<p.nombre<<"\n";
-            cout<<"X: "<<x<<endl;
-            x++;
-        }
-        archivoprov->clear();
-
-}
-
-void eliminarProveedor(archivoHeader proveedores,fstream* archivop,int id){
-    const char* rutaTemp = "proveedores_tmp.bin";
-    if(!archivop){
-        cout<<"No se puede abrir el archivo de proveedores: "<<"."<<endl;
-        return;
-    }
-    const char* rutaOriginal="C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin";
-    fstream archivoTemp(rutaTemp, ios::out | ios::binary | ios::trunc);
-    if(!archivoTemp){
-        cout<<"No se puede crear archivo temporal para eliminar proveedor."<<endl;
-        return;
-    }
-
-    Proveedor p;
-    bool encontrado = false;
-    int total = 0;
-    archivop->clear();
-    archivop->seekg(0,ios::beg);
-    while(archivop->read(reinterpret_cast<char*>(&p), sizeof(Proveedor))){
-        if(p.id == id){
-            encontrado = true;
-            continue;
-        }
-    archivop->clear();
-    archivoTemp.clear();
-    archivoTemp.seekp(0,ios::beg);
-    archivoTemp.write(reinterpret_cast<char*>(&p), sizeof(Proveedor));
-        total++;
-    }
-    archivoTemp.close();
-    archivop->close();
-    if(!encontrado){
-        cout<<"Proveedor con ID "<<id<<" no encontrado."<<endl;
-        remove(rutaTemp);
-        return;
-    }
-
-    if(remove(rutaOriginal) != 0){
-        cout<<"Error al eliminar el archivo original de proveedores."<<endl;
-        return;
-    }
-    if(rename(rutaTemp, rutaOriginal) != 0){
-        cout<<"Error al renombrar el archivo temporal de proveedores."<<endl;
-        return;
-    }
-    archivop->open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::in|ios::out);
-    proveedores.cantidadRegistros--;
-    proveedores.registrosActivos--;
-    if(proveedores.cantidadRegistros > 0) proveedores.cantidadRegistros--;
-    cout<<"Proveedor con ID "<<id<<" eliminado correctamente."<<endl;
-}
-
-void editarProveedor(archivoHeader proveedor,fstream* archivop, int idProveedor){
-    
-    if(!archivop){
-        cout<<"No se puede abrir el archivo de proveedores para edición."<<endl;
-        return;
-    }
-
-    vector<Proveedor> lista;
-    Proveedor p;
-    int idx = -1;
-    while(archivop->read(reinterpret_cast<char*>(&p), sizeof(Proveedor))){
-        lista.push_back(p);
-    }
-
-    for(size_t i=0; i<lista.size(); i++){
-        if(lista[i].id == idProveedor){ idx = i; break; }
-    }
-    if(idx == -1){ cout<<"Proveedor no encontrado."<<endl; return; }
-
-    Proveedor temp = lista[idx];
-    int respuesta = -1;
-    string nuevaLinea;
-
-    do{
-        cout<<"Que desea editar del proveedor?\n";
-        cout<<"1. Id\n";
-        cout<<"2. Nombre\n";
-        cout<<"3. Guardar cambios\n";
-        cout<<"4. Eliminar proveedor\n";
-        cout<<"0. Cancelar\n";
-        cin>>respuesta;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-        switch(respuesta){
-            case 1:
-                cout<<"Ingrese nuevo ID de proveedor (0 para cancelar): ";
-                if(!(cin>>temp.id)){ cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); cout<<"Entrada inválida."<<endl; break; }
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                if(temp.id==0){ cout<<"Edición cancelada."<<endl; break; }
-                break;
-            case 2:
-                cout<<"Ingrese el nuevo nombre del proveedor: ";
-                getline(cin, nuevaLinea);
-                while(nuevaLinea.empty()){ cout<<"El nombre no puede estar vacío. Ingrese de nuevo: "; getline(cin,nuevaLinea); }
-                strncpy(temp.nombre, nuevaLinea.c_str(), sizeof(temp.nombre)-1);
-                temp.nombre[sizeof(temp.nombre)-1] = '\0';
-                break;
-            case 3:
-                cout<<"Guardando cambios...\n";
-                lista[idx] = temp;
-                {
-                    fstream out("Progamacion-2/Proyectos/proyectov4/proveedores.bin", ios::out | ios::binary | ios::trunc);
-                    if(!out){ cout<<"Error al abrir archivo de proveedores para guardar."<<endl; return; }
-                    for(const auto &pr : lista){ out.write(reinterpret_cast<const char*>(&pr), sizeof(Proveedor)); }
-                }
-                cout<<"Proveedor actualizado."<<endl;
-                return;
-            case 4:
-                eliminarProveedor(proveedor,archivop, idProveedor);
-                return;
-            case 0:
-                cout<<"Edición cancelada."<<endl;
-                return;
-            default:
-                cout<<"Opción inválida."<<endl;
-        }
-    } while(respuesta != 0);
-}
-
-Proveedor* buscarProveedor(archivoHeader proveedor,fstream* archivo,int id,string nombre,int opcion){
-    const char* ruta = "proveedores.bin";
-    if(!archivo){
-        cout<<"No se puede abrir el archivo de proveedores."<<endl;
-        return nullptr;
-    }
-    int x=0;
-    Proveedor p;
-    Proveedor* parreglo=new Proveedor[proveedor.cantidadRegistros];
-    Proveedor* parregloencontrados=new Proveedor[proveedor.cantidadRegistros];
-    archivo->clear();
-    archivo->seekg(0,ios::beg);
-    while(archivo->read(reinterpret_cast<char*>(&p), sizeof(Proveedor))||x<proveedor.cantidadRegistros){
-        cout<<"id:"<<p.id<<endl;
-        parreglo[x]=p;
-        x++;
-    }
-    archivo->clear();
-
-    if(opcion == 1){
-        cout<<"aqui:"<<endl;
-        archivo->seekg(0,ios::beg);
-        for(int i=0;i<proveedor.cantidadRegistros;i++){
-            archivo->read(reinterpret_cast<char*>(&p), sizeof(Proveedor));
-            cout<<"id:"<<p.id<<endl;
-            if(p.id == id){
-                Proveedor* result = &p;
-                cout<<"Proveedor encontrado: ID: "<<result->id<<" | Nombre: "<<result->nombre<<"\n";
-                return result;
-            }
-        }
-        cout<<"Proveedor con ID "<<id<<" no encontrado."<<endl;
-        return nullptr;
-    }
-
-    if(opcion == 2){
-        x=0;
-        for(int i=0; i<proveedor.cantidadRegistros; i++){
-            string s=parreglo[i].nombre;
-            if(s.find(nombre) != string::npos){
-                parregloencontrados[x]=parreglo[i];
-                x++;
-            }
-        }
-        if(x==0){
-            cout<<"No se encontró proveedor con el nombre "<<nombre<<"."<<endl;
-            return nullptr;
-        }
-        cout<<"Se encontraron "<<x<<" coincidencias:\n";
-        for(int i=0; i<x; i++){
-            const auto &pr = parregloencontrados[x];
-            cout<<i+1<<". ID="<<pr.id<<" Nombre="<<pr.nombre<<"\n";
-        }
-        int opcion2;
-        do{ cout<<"Seleccione número de proveedor (1-"<<x<<") : "; cin>>opcion2; } while(opcion2<1 || opcion2>x);
-        Proveedor* result = new Proveedor(parregloencontrados[opcion2-1]);
-        return result;
-    }
-
-    cout<<"Opción de búsqueda inválida."<<endl;
-    return nullptr;
-}
-};
 class Productoventa{
     public:
     int idt;
@@ -318,428 +39,6 @@ public:
 };
 class Tienda {
 };
-
-class Producto {
-    public:
-    int id=0;                    // Identificador único (autoincremental)
-    char codigo[20];           // Código del producto (ej: "PROD-001")
-    char nombre[100];          // Nombre del producto
-    char descripcion[200];     // Descripción del producto
-    int idProveedor=0;           // ID del proveedor asociado
-    float precio=0;            // Precio unitario
-    int stock=0;               // Cantidad en inventario
-    char fechaRegistro[11];    // Formato: YYYY-MM-DD
-    char fechavencimiento[11]; //Formato: YYYY-MM-DD (opcional)
-    bool registroactivo;
-    void Crearproductos(archivoHeader* proveedores,fstream& archivoproducto,archivoHeader& tienda,fstream& archivoproveedor,int posiprod,int posiprov){
-    string input;
-    int cantidad = 0;
-    if(archivoproducto.is_open()){
-        cout<<"Ingrese la cantidad de productos a crear (o 'CANCELAR'/'0' para cancelar): ";
-    while(true){
-        if(!getline(cin, input)) return;
-        if(input=="CANCELAR" || input=="0") { cout<<"Creación cancelada."<<endl; return; }
-        try{ cantidad = stoi(input); }
-        catch(...){ cout<<"Entrada invalida. Ingrese un numero: "; continue; }
-        if(cantidad>0) break;
-        cout<<"La cantidad debe ser mayor a 0. Intente nuevamente: ";
-    }
-    for(int n=0;n<cantidad;n++){
-        Producto temp;
-
-        // Codigo (único)
-        while(true){
-            cout<<"Ingrese el codigo del producto (o 'CANCELAR' para cancelar): ";
-            if(!getline(cin, input)) return;
-            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-            if(input.empty()){ cout<<"El codigo no puede estar vacío."<<endl; continue; }
-            //if(codigoDuplicado(tienda, input)) { cout<<"Codigo ya existe. Ingrese otro."<<endl; continue; }
-            strncpy(temp.codigo, input.c_str(), sizeof(temp.codigo)-1);
-            break;
-        }
-
-        // Nombre
-        cout<<"Ingrese el nombre del producto (o 'CANCELAR' para cancelar): ";
-        if(!getline(cin,input)) return;
-        if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-        strncpy(temp.nombre, input.c_str(), sizeof(temp.nombre)-1);
-
-        // Descripcion
-        cout<<"Ingrese la descripcion del producto (o 'CANCELAR' para cancelar): ";
-        if(!getline(cin,input)) return;
-        if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-        strncpy(temp.descripcion, input.c_str(), sizeof(temp.descripcion)-1);
-
-        // ID proveedor y validación existencia
-        bool proveedorValido = false;
-        while(!proveedorValido){
-            archivoproveedor.clear();
-            archivoproveedor.seekg(posiprov*sizeof(archivoHeader),ios::beg);
-            cout<<"Ingrese el id del proveedor del producto (o 'CANCELAR' para cancelar): ";
-            if(!getline(cin,input)) return;
-            if(input=="CANCELAR" ||input=="cancelar" || input=="Cancelar"|| input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-            int idProv = 0;
-             idProv = stoi(input); 
-             archivoproveedor.clear();
-             archivoproveedor.seekg(0,ios::beg);
-            try{
-                Proveedor p;
-                int x=0;
-                while(archivoproveedor.read(reinterpret_cast<char*>(&p),sizeof(Proveedor))){
-                    cout<<"id del proveedor: "<<p.id<<" nombre del proveedor: "<<p.nombre<<endl;
-                    if(p.id==idProv){
-                        proveedorValido=true;
-                        archivoproveedor.clear();
-                        break;
-                    }
-                    archivoproveedor.clear();
-                }
-            }
-            catch(...){
-                if(!proveedorValido) cout<<"El id del proveedor no existe, intentelo nuevamente."<<endl;
-            
-            }temp.idProveedor = idProv;
-            
-        }
-        archivoproveedor.clear();
-
-        // Precio > 0
-        while(true){
-            cout<<"Ingrese el precio del producto (mayor a 0) o 'CANCELAR' para cancelar: ";
-            if(!getline(cin,input)) return;
-            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-            try{ temp.precio = stof(input); }
-            catch(...){ cout<<"Precio invalido. Intente nuevamente."<<endl; continue; }
-            if(temp.precio<=0){ cout<<"El precio debe ser mayor a 0."<<endl; continue; }
-            break;
-        }
-
-        // Stock > 0
-        while(true){
-            cout<<"Ingrese el stock del producto (mayor a 0) o 'CANCELAR' para cancelar: ";
-            if(!getline(cin,input)) return;
-            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-            try{ temp.stock = stoi(input); }
-            catch(...){ cout<<"Stock invalido. Intente nuevamente."<<endl; continue; }
-            if(temp.stock<=0){ cout<<"El stock debe ser mayor a 0."<<endl; continue; }
-            break;
-        }
-
-        // Fecha
-        cout<<"Ingrese la fecha del registro (YYYY-MM-DD) o 'CANCELAR' para cancelar: ";
-        if(!getline(cin,input)) return;
-        if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-        strncpy(temp.fechaRegistro, input.c_str(), sizeof(temp.fechaRegistro)-1);
-        //Fecha de Vencimiento (opcional)
-        cout<<"El producto tiene fecha de vencimiento? (S/N): ";
-        if(!getline(cin,input)) return;
-        if(input=="S"||input=="s"||input=="Si"||input=="SI"||input=="si"){
-            cout<<"Introduzca la fecha de vencimiento (YYYY-MM-DD) o 'CANCELAR' para cancelar: ";
-            if(!getline(cin,input)) return;
-            if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
-            strncpy(temp.fechavencimiento, input.c_str(),sizeof(temp.fechavencimiento)-1);
-
-        }
-        // Asignar ID autoincremental
-        temp.id = tienda.proximoID+1;
-
-        // Confirmación
-        cout<<"\nResumen del producto:"<<endl;
-        cout<<"ID: "<<temp.id<<" | Codigo: "<<temp.codigo<<" | Nombre: "<<temp.nombre<<" | Precio: "<<temp.precio<<" | Stock: "<<temp.stock<<" | Proveedor ID: "<<temp.idProveedor<<"\n";
-        cout<<"¿Desea guardar este producto? (S/N): ";
-        string resp;
-        if(!getline(cin,resp)) return;
-        if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
-            // si el arreglo está lleno, redimensionar duplicando capacidad
-           /*if(tienda->cantidadRegistros >= tienda->capacidadProductos){
-                //redimensionarProductos(tienda);
-                cout<<"Arreglo de productos redimensionado a capacidad "<<tienda->capacidadProductos<<"."<<endl;
-            }*/
-            if(tienda.cantidadRegistros>0){
-                archivoproducto.clear();
-                archivoproducto.seekp((tienda.cantidadRegistros+posiprod+1)*sizeof(Producto),ios::beg);
-                cout<<"entro aqui >0"<<endl;
-            }
-            else{
-                archivoproducto.clear();
-                archivoproveedor.clear();
-                archivoproducto.seekp((0)*sizeof(Producto),ios::beg);
-                cout<<"entro aqui 0"<<endl;
-            }
-            archivoproducto.write(reinterpret_cast<char*>(&temp),sizeof(Producto)) ;
-            archivoproducto.flush();
-            if(archivoproducto.fail()){
-                cout<<"No se pudo escribir"<<endl;
-            }
-            tienda.cantidadRegistros++;
-            tienda.proximoID++;
-            tienda.registrosActivos++;
-            archivoproducto.clear();
-            archivoproveedor.clear();
-            cout<<"Producto guardado."<<endl;
-        } else {
-            cout<<"Producto descartado por el usuario."<<endl;
-        }
-    }
-    }
-    
-}
-Producto buscarProducto(archivoHeader* productosheader,fstream& archivo,int id,string nombre, int opcion){
-    // Implementar búsqueda por ID, nombre, código o proveedor
-    // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
-    Producto p;
-    int posicion,i=0;
-    if(opcion==1){
-    bool encontrado =0;
-    try{ id; }
-    catch(...){ cout<<"ID invalido."<<endl;  }
-    archivo.clear();
-    archivo.seekg(0,ios::beg);
-    for(int i=0;i<productosheader->cantidadRegistros+1;i++){
-        archivo.read(reinterpret_cast<char*>(&p),sizeof(p));
-        if(p.id == id){
-            posicion=i;
-            cout<<"Producto encontrado: ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<"\n";
-            encontrado=1; 
-            archivo.clear(); 
-            cout<<"ola"<<endl;
-            return p;
-        }
-        else{
-            i++;
-        }
-    }
-    archivo.clear();
-    if(!encontrado){
-        cout<<"Producto no encontrado."<<endl;
-    }
-    else{
-        return p;
-    }
-    }
-    else if(opcion==2){
-        string nombre;
-        cout<<"introduce el nombre del producto: ";
-        getline(cin,nombre);
-        int* idencontrados=new int[productosheader->cantidadRegistros];
-        int x=0;
-        while(archivo.read(reinterpret_cast<char*>(&p),sizeof(p))){
-            string str(p.nombre);
-            if(str.find(nombre)){
-                idencontrados[x]=p.id;
-                x++;
-            }
-        }
-        if(x==0){
-            cout<<"no se encontro ningun producto con ese nombre"<<endl;
-        }
-        else{
-            int opcion2;
-            Producto* p2= new Producto[productosheader->cantidadRegistros];
-            cout<<"se encontraron "<<x<<" coincidencias :"<<endl;
-            for(int i=0;i<x;i++){
-                while(archivo.read(reinterpret_cast<char*>(&p),sizeof(p))){
-                    if(p.id==idencontrados[i]){
-                        p2[x]=p;
-                        cout<<"Producto "<<i+1<<": id:"<<p.id<<" nombre: "<<p.nombre<<" codigo: "<<p.codigo<<" precio: "<<p.precio<<endl;
-                    }
-                }   
-            }
-            do{
-            cout<<"Introduzca el numero del producto para seleccionarlo";
-            cin>>opcion2;
-            opcion2--;
-            }while(opcion2<0||opcion2>x);
-            return p2[opcion2];
-    }
-}
-
-//return tienda->productos[posicion];
-};
-bool codigoDuplicado(archivoHeader* tienda,fstream* archivo ,const string& codigo){
-    Producto p;
-    while(archivo->read(reinterpret_cast<char*>(&p),sizeof(p))){
-        if(strncmp(p.codigo, codigo.c_str(), sizeof(p.codigo))==0) return true;
-    }
-    return false;
-}
-void listarProductos(fstream* archivop,fstream* archivosprov, archivoHeader productos, archivoHeader provedor,int posiprod,int posiprov){
-        if(!archivop){
-            cout<<"No se puede abrir el archivo de productos: .\n";
-            return;
-        }
-
-        Producto p;
-        Proveedor prov;
-        bool tieneProductos = false;
-
-        // cabecera del cuadro
-        cout<<"╔══════════════════════════════════════════════════════════════════════════╗\n";
-        cout<<"║                         LISTADO DE PRODUCTOS                             ║\n";
-        cout<<"╠════╦═══════════╦══════════════════╦══════════════╦═══════╦════════╦══════╣\n";
-        cout<<"║ ID ║  Código   ║     Nombre       ║  Proveedor   ║ Precio║ Stock  ║ Fecha║\n";
-        cout<<"╠════╬═══════════╬══════════════════╬══════════════╬═══════╬════════╬══════╣\n";
-        archivop->clear();
-        archivosprov->clear();
-        archivop->seekg(0,ios::beg);
-        archivosprov->seekg(0,ios::beg);
-        
-        for(int i=0;i<productos.cantidadRegistros;i++){
-            archivop->read(reinterpret_cast<char*>(&p),sizeof(Producto));
-            const char* provName = "N/A";
-            for(int j=0;j<provedor.cantidadRegistros;j++){
-                archivosprov->read(reinterpret_cast<char*>(&prov),sizeof(Proveedor));
-                if(prov.id == p.idProveedor){
-                    provName = prov.nombre;
-                    break;
-                    tieneProductos=true;
-                }
-                cout<<"║ "<<setw(2)<<p.id<<" ║ "
-                <<setw(9)<<p.codigo<<" ║ "
-                <<setw(16)<<p.nombre<<" ║ "
-                <<setw(12)<<provName<<" ║ "
-                <<setw(6)<<fixed<<setprecision(2)<<p.precio<<"║ "
-                <<setw(6)<<p.stock<<" ║ "
-                <<setw(10)<<p.fechaRegistro<<" ║\n";
-            }
-
-            cout<<"║ "<<setw(2)<<p.id<<" ║ "
-                <<setw(9)<<p.codigo<<" ║ "
-                <<setw(16)<<p.nombre<<" ║ "
-                <<setw(12)<<provName<<" ║ "
-                <<setw(6)<<fixed<<setprecision(2)<<p.precio<<"║ "
-                <<setw(6)<<p.stock<<" ║ "
-                <<setw(10)<<p.fechaRegistro<<" ║\n";
-                tieneProductos=true;
-        }
-        archivop->clear();
-        archivosprov->clear();
-
-        if(!tieneProductos){
-            cout<<"║                     No hay productos registrados.                      ║\n";
-        }
-        cout<<"╚════╩═══════════╩══════════════════╩══════════════╩═══════╩════════╩══════╝\n";
-}
-void eliminarProducto(archivoHeader productos,fstream& archivop,int id){
-    if(!archivop.is_open()){
-        cout<<"La tienda no ha sido creada"<<endl;
-        return;
-    }
-    const char* rutaOriginal = "C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/productos.bin";
-    const char* rutaTemp = "productos_tmp.bin";
-
-    fstream archivoTemp(rutaTemp, ios::out | ios::binary | ios::trunc);
-    if(!archivoTemp){
-        cout<<"No se puede crear archivo temporal para eliminar producto."<<endl;
-        return;
-    }
-
-    Producto p;
-    
-    bool encontrado = false;
-    int total = 0;
-    archivop.clear();
-    archivoTemp.clear();
-    archivop.seekp(0,ios::beg);
-    while(archivop.read(reinterpret_cast<char*>(&p), sizeof(Producto))){
-        if(p.id == id){
-            encontrado = true;
-            p.registroactivo=0;
-
-        }
-        archivoTemp.write(reinterpret_cast<char*>(&p), sizeof(Producto));
-        total++;
-    }
-
-    archivop.close();
-    archivoTemp.close();
-
-    if(!encontrado){
-        cout<<"No se encontró el producto con ID "<<id<<". Ningún cambio aplicado."<<endl;
-        remove(rutaTemp);
-        return;
-    }
-
-    if(remove(rutaOriginal) != 0){
-        cout<<"Error al eliminar el archivo original de productos."<<endl;
-        return;
-    }
-    if(rename(rutaTemp, rutaOriginal) != 0){
-        cout<<"Error al renombrar el archivo temporal de productos."<<endl;
-        return;
-    }
-    archivop.open(rutaOriginal,ios::binary|ios::in|ios::out);
-    productos.registrosActivos--;
-    cout<<"Producto con ID "<<id<<" eliminado correctamente."<<endl;
-    if(productos.cantidadRegistros>0){
-        cout<<"Producto con id: "<<id<<" eliminado correctamente"<<endl;
-    }
-}
-void modificarstock(archivoHeader productos,fstream& archivop,int id,int cant,int opt){
-    if(!archivop.is_open()){
-        cout<<"La tienda no ha sido creada"<<endl;
-        return;
-    }
-    const char* rutaOriginal = "C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/productos.bin";
-    const char* rutaTemp = "productos_tmp.bin";
-
-    fstream archivoTemp(rutaTemp, ios::out | ios::binary | ios::trunc);
-    if(!archivoTemp){
-        cout<<"No se puede crear archivo temporal para eliminar producto."<<endl;
-        return;
-    }
-
-    Producto p;
-    
-    bool encontrado = false;
-    int total = 0;
-    archivop.clear();
-    archivoTemp.clear();
-    archivop.seekp(0,ios::beg);
-    while(archivop.read(reinterpret_cast<char*>(&p), sizeof(Producto))){
-        if(p.id == id&&opt==1){
-            encontrado = true;
-            p.stock=p.stock-cant;
-
-        }
-        if(p.id == id&&opt==2){
-            encontrado = true;
-            p.stock=p.stock+cant;
-
-        }
-        archivoTemp.write(reinterpret_cast<char*>(&p), sizeof(Producto));
-        total++;
-    }
-
-    archivop.close();
-    archivoTemp.close();
-
-    if(!encontrado){
-        cout<<"No se encontró el producto con ID "<<id<<". Ningún cambio aplicado."<<endl;
-        remove(rutaTemp);
-        return;
-    }
-
-    if(remove(rutaOriginal) != 0){
-        cout<<"Error al eliminar el archivo original de productos."<<endl;
-        return;
-    }
-    if(rename(rutaTemp, rutaOriginal) != 0){
-        cout<<"Error al renombrar el archivo temporal de productos."<<endl;
-        return;
-    }
-    archivop.open(rutaOriginal,ios::binary|ios::in|ios::out);
-    productos.registrosActivos--;
-    cout<<"Producto con ID "<<id<<" eliminado correctamente."<<endl;
-    if(productos.cantidadRegistros>0){
-        cout<<"Producto con id: "<<id<<" eliminado correctamente"<<endl;
-    }
-}
-};
-
-
-
-
 /*void inicializarTienda(Tienda* tienda){
     if(!tienda) return;
     cin.ignore(numeric_limits<streamsize>::max(),'\n');
@@ -763,8 +62,6 @@ void modificarstock(archivoHeader productos,fstream& archivop,int id,int cant,in
     tienda->capacidadClientes=cap;
     tienda->clientes=new Cliente[cap];
 }*/
-
-
 // Busca transacciones por ID de producto usando fichero binario
 void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
     if(tienda==nullptr){ cout<<"Tienda no inicializada."<<endl; return; }
@@ -1065,11 +362,11 @@ Cliente buscarCliente(archivoHeader& cliente,fstream& archivoc,int cedula,string
 }
 
 
-void editarProducto(archivoHeader producto,fstream* archivo,fstream* archivoprov, int idProducto){
+void editarProducto(archivoHeader &producto,fstream &archivo,fstream* archivoprov, int idProducto){
     //Funcion para editar algun aspecto del producto
     
     int idBuscado=0;
-    int provvaalido=0;
+    int provvaalido=0,pos;
     bool encontrado=false;
     int resp;
     Producto temp,p;
@@ -1077,13 +374,18 @@ void editarProducto(archivoHeader producto,fstream* archivo,fstream* archivoprov
     cout<<"id producto: "<<idProducto;
     int i=0;
     string respp;
-    while(archivo->read(reinterpret_cast<char*>(&p),sizeof(Producto))){
+    archivo.clear();
+    archivo.seekg(0,ios::beg);
+    while(archivo.read(reinterpret_cast<char*>(&p),sizeof(Producto))){
         if(p.id==idProducto){
             idBuscado=i;
+            pos=archivo.tellg()/sizeof(Producto);
+            archivo.clear();
             encontrado=true;
             break;
         }
         else{
+            archivo.clear();
             i++;
         }
     }
@@ -1114,7 +416,7 @@ void editarProducto(archivoHeader producto,fstream* archivo,fstream* archivoprov
                 // Editar código (validar único)
                 cout <<"Ingrese el nuevo código del producto o 0 para cancelar: ";
                 getline(cin,respp);
-                   while(p.codigoDuplicado(&producto,archivo, respp)) { cout<<"Codigo ya existe Intentelo nuevamente."<<endl; getline(cin,respp); }
+                   while(p.codigoDuplicado(&producto,&archivo, respp)) { cout<<"Codigo ya existe Intentelo nuevamente."<<endl; getline(cin,respp); }
                    if (respp.empty()){ cout<<"El código no puede estar vacío. Edición cancelada."<<endl; break; }
                    if ( respp=="0"||respp=="CANCELAR"){ cout<<"Edición cancelada."<<endl; break; }
                 // Asignar nuevo código al producto
@@ -1221,7 +523,10 @@ void editarProducto(archivoHeader producto,fstream* archivo,fstream* archivoprov
                 cout<<"Producto Despues: ID: "<<temp.id<<" | Codigo: "<<temp.codigo<<" | Nombre: "<<temp.nombre<<" | Precio: "<<temp.precio<<" | Stock: "<<temp.stock<<" | Proveedor ID: "<<temp.idProveedor<<" | Fecha de Registro: "<<temp.fechaRegistro<<" | Fecha de Vencimiento: "<<temp.fechavencimiento<<endl;
                 cout<<"¿Desea guardar los cambios realizados al producto? (S/N): ";
                 //tienda->productos[idBuscado]=temp;
-                archivo->write(reinterpret_cast<char*>(&temp),sizeof(Producto));
+                archivo.clear();
+                archivo.seekp((pos-1)*sizeof(Producto),ios::beg);
+                archivo.write(reinterpret_cast<char*>(&temp),sizeof(Producto));
+                archivo.clear();
                 cout<<"Cambios guardados."<<endl;
                 break;
             case 0:
@@ -1233,87 +538,16 @@ void editarProducto(archivoHeader producto,fstream* archivo,fstream* archivoprov
     }while(ola!=0&&ola!=7);
 }
 
-void eliminarheader(archivoHeader header,fstream& archivo,char* ruta,int opcion,int posi,bool exist){
-    const char* rutaTemp = "headertemp.bin";
+void actualizarheader(archivoHeader header,fstream& archivo){
     int x=0;
     if(!archivo.is_open()){
         cout<<"No se pudo abrir el archivo"<<endl;
         return;
     }
-    fstream archivotemp(rutaTemp,ios::binary|ios::out|ios::in|ios::trunc);
-    if(!archivotemp.is_open()){
-        cout<<"No se puede crear archivo temporal para eliminar proveedor."<<endl;
-        return;
-    }
-    if(opcion==1){
-        Producto p;
-        int total=0;
         archivo.clear();
-        if(exist==1){
-            archivo.seekg(posi*sizeof(archivoHeader),ios::beg);
-        }
-        else{
-            archivo.seekg(0,ios::beg);
-        }
-        while (archivo.read(reinterpret_cast<char*>(&p),sizeof(Producto))||header.cantidadRegistros>x)
-        {
-            cout<<"id: "<<p.id<<" nombre: "<<p.nombre<<" codigo: "<<p.codigo<<endl;
-            archivo.clear();
-            archivotemp.clear();
-            archivotemp.seekp(0,ios::beg);
-            archivotemp.write(reinterpret_cast<char*>(&p), sizeof(Producto));
-            archivo.clear();
-            total++;
-            x++;
-        }
-        archivotemp.close();
-        archivo.close();
-
-        if(remove(ruta) != 0){
-            cout<<"Error al eliminar el archivo original de proveedores."<<endl;
-            return;
-        }
-        if(rename(rutaTemp, ruta) != 0){
-            cout<<"Error al renombrar el archivo temporal de proveedores."<<endl;
-            return;
-        }
-        archivo.open(ruta);
-    }
-    if(opcion==2){
-        Proveedor p;
-        int total=0;
+        archivo.seekg(0,ios::beg);
+        archivo.write(reinterpret_cast<char*>(&header),sizeof(archivoHeader));
         archivo.clear();
-        if(exist==1){
-            archivo.seekg(posi*sizeof(archivoHeader),ios::beg);
-        }
-        else{
-            archivo.seekg(0,ios::beg);
-        }
-        while (archivo.read(reinterpret_cast<char*>(&p),sizeof(Proveedor))||x<header.cantidadRegistros)
-        {
-            
-            archivo.clear();
-            archivotemp.clear();
-            archivotemp.seekp(0,ios::beg);
-            cout<<"ID: "<<p.id<<" | Nombre: "<<p.nombre<<"\n";
-            archivotemp.write(reinterpret_cast<char*>(&p), sizeof(Proveedor));
-            archivo.clear();
-            total++;
-            x++;
-        }
-        archivotemp.close();
-        archivo.close();
-
-        if(remove(ruta) != 0){
-            cout<<"Error al eliminar el archivo original de proveedores."<<endl;
-            return;
-        }
-        if(rename(rutaTemp, ruta) != 0){
-            cout<<"Error al renombrar el archivo temporal de proveedores."<<endl;
-            return;
-        }
-        archivo.open(ruta);
-    }
 
 }
 void venta(archivoHeader& producto,archivoHeader transaccion,archivoHeader& cliente,archivoHeader& pt,fstream& archivop,fstream& archivoc,fstream& archivot,fstream& archivopt){
@@ -1712,7 +946,7 @@ int main(){
                     case 3:
                         cout<<"ingrese el id del producto: ";
                         cin>>id;
-                        editarProducto(productos,&archivoproductos,&archivoproveedores,id);
+                        editarProducto(productos,archivoproductos,&archivoproveedores,id);
                         break;
                     case 4:
                         p.modificarstock(productos,archivoproductos,1,1,1);
@@ -1891,12 +1125,8 @@ int main(){
                 break;
             case 5:
                 cout<<"Saliendo del programa..."<<endl;
-               /* eliminarheader(productos,archivoproductos,rutaproductos,1,posiprod,existp);
-                eliminarheader(proveedores,archivoproveedores,rutaproveedores,2,posiprov,existprov);*/
-                archivoproductos.seekg(0,ios::beg);
-                archivoproductos.write(reinterpret_cast<char*>(&productos),sizeof(archivoHeader));
-                archivoproveedores.seekg(0,ios::beg);
-                archivoproveedores.write(reinterpret_cast<char*>(&proveedores),sizeof(archivoHeader));
+                actualizarheader(productos,archivoproductos);
+                actualizarheader(proveedores,archivoproveedores);
                 archivoclientes.seekg(0,ios::beg);
                 archivoclientes.write(reinterpret_cast<char*>(&clientes),sizeof(archivoHeader));
                 archivoclientes.close();
@@ -1907,13 +1137,6 @@ int main(){
             default:
                 cout<<"Opción inválida. Intente nuevamente."<<endl;
         }
-    /*Crearproductos(&tienda);
-    buscarProducto(&tienda);*/
-    // Ejemplo de búsqueda (si hay transacciones)
-    // buscarTransaccionesPorProducto(&tienda, 1);
-
-    
-    
 }while(opcion!=5);
 
 }
