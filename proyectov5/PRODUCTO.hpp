@@ -1,6 +1,8 @@
 #ifndef PRODUCTO_HPP
 #define PRODUCTO_HPP
 #include <fstream>
+#include <iostream>
+#include <string>
 #include "HEADER.hpp"
 #include "PROVEEDOR.hpp"
   class Producto {
@@ -21,5 +23,6 @@ bool codigoDuplicado(archivoHeader* tienda,fstream* archivo ,const string& codig
 void listarProductos(fstream* archivop,fstream* archivosprov, archivoHeader productos, archivoHeader provedor,int posiprod,int posiprov);
 void eliminarProducto(archivoHeader &productos,fstream& archivop,int id);
 void modificarstock(archivoHeader productos,fstream& archivop,int id,int cant,int opt);
+void editarProducto(archivoHeader &producto,fstream &archivo,fstream* archivoprov, int idProducto);
 };
 #endif // PRODUCTO_HPP

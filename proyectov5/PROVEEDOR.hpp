@@ -2,6 +2,7 @@
 #define PROVEEDOR_HPP
 #include <fstream>
 #include "HEADER.hpp"
+using namespace std;
     class Proveedor {
     public:
     int id=0;

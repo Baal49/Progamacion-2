@@ -1,9 +1,6 @@
 #include "PROVEEDOR.hpp"
 #include <iostream>
-#include <fstream>
-#include <string>
-#include "HEADER.hpp"
-using namespace std;
+
 
     // otros campos omitidos para brevedad
     void Proveedor::Crearproveedor(archivoHeader& proveedor, fstream* archivo,int posi){

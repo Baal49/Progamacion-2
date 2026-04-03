@@ -361,3 +361,178 @@ void Producto::modificarstock(archivoHeader productos,fstream& archivop,int id,i
     archivop.clear();
     cout<<"Producto con ID "<<id<<" modificado correctamente."<<endl;
 }
+void Producto::editarProducto(archivoHeader &producto,fstream &archivo,fstream* archivoprov, int idProducto){
+    //Funcion para editar algun aspecto del producto
+    
+    int idBuscado=0;
+    int provvaalido=0,pos;
+    bool encontrado=false;
+    int resp;
+    Producto temp,p;
+    Proveedor prov;
+    cout<<"id producto: "<<idProducto;
+    int i=0;
+    string respp;
+    archivo.clear();
+    archivo.seekg(0,ios::beg);
+    while(archivo.read(reinterpret_cast<char*>(&p),sizeof(Producto))){
+        if(p.id==idProducto){
+            idBuscado=i;
+            pos=archivo.tellg()/sizeof(Producto);
+            archivo.clear();
+            encontrado=true;
+            break;
+        }
+        else{
+            archivo.clear();
+            i++;
+        }
+    }
+    if(!encontrado){
+        cout<<"Producto no encontrado."<<endl;
+        return;
+    } 
+    temp = p;
+    int ola=0;
+    do{
+    
+    cout <<"Que desea editar del producto?"<<endl;
+        cout <<"1. Código"<<endl;
+        cout <<"2. Nombre"<<endl;
+        cout <<"3. Descripción"<<endl;
+        cout <<"4. Proveedor"<<endl;
+        cout <<"5. Precio"<<endl;
+        cout <<"6. Stock"<<endl;
+        cout <<"7. Fecha de Registro"<<endl;
+        cout <<"8. Fecha de vencimiento"<<endl;
+        cout <<"9. Eliminar producto"<<endl;
+        cout <<"10. Guardar cambios"<<endl;
+        cout <<"0. Cancelar sin guardar"<<endl;
+        cin>>ola;
+        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+        switch(ola){
+            case 1:
+                // Editar código (validar único)
+                cout <<"Ingrese el nuevo código del producto o 0 para cancelar: ";
+                getline(cin,respp);
+                   while(p.codigoDuplicado(&producto,&archivo, respp)) { cout<<"Codigo ya existe Intentelo nuevamente."<<endl; getline(cin,respp); }
+                   if (respp.empty()){ cout<<"El código no puede estar vacío. Edición cancelada."<<endl; break; }
+                   if ( respp=="0"||respp=="CANCELAR"){ cout<<"Edición cancelada."<<endl; break; }
+                // Asignar nuevo código al producto
+                strcpy(temp.codigo,respp.c_str());
+                break;
+            case 2:
+                // Editar nombre.
+                
+                cout<<"Ingrese el nuevo nombre del producto: ";
+                getline(cin,respp);
+                while (respp.empty()){ cout<<"El nombre no puede estar vacío."<<endl; getline(cin,respp); }
+                while (respp.length() >= sizeof(temp.nombre)){ cout<<"El nombre es demasiado largo. Coloque otro nombre."<<endl; getline(cin,respp); }
+                // Asignar nuevo nombre al producto
+                if (respp=="CANCELAR" || respp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+                strcpy(temp.nombre,respp.c_str());
+                respp.clear();
+                break;
+            case 3:
+                // Editar descripción
+                cout<<"ingrese la nueva descripcion del producto: ";
+                getline(cin,respp);
+                while(respp.empty()){cout<<"La descripcion no puede estar vacia."<<endl;getline(cin,respp);}
+                while(respp.length()>sizeof(temp.descripcion)){cout<<"La descripcion es demasiado larga."<<endl; getline(cin,respp);}
+                if (respp=="CANCELAR" || respp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+                strcpy(temp.descripcion,respp.c_str());
+                cout<<"Descripción actualizada."<<endl;
+                break;
+            case 4:
+                // Editar proveedor (validar existencia)
+                    cout<<"Ingrese el nuevo ID del proveedor del producto: ";
+                    cin>>resp;
+                    
+                    while(provvaalido==0){
+                    while(archivoprov->read(reinterpret_cast<char*>(&prov),sizeof(Proveedor))){
+                        if(prov.id==resp){
+                            provvaalido=1;
+                            break;
+                        }
+                    }
+                    if(provvaalido==0){
+                        cout<<"el ID del provedor no existe. Intentelo nuevamente."<<endl;
+                        break;
+                    }
+                }
+                temp.idProveedor=resp;
+                cout<<"Proveedor actualizado."<<endl;
+                break;
+            case 5:
+                // Editar precio (validar > 0)
+                    cout<<"Ingrese el nuevo precio del producto: ";
+                    float precio;
+                    cin>>precio;
+                    while(precio<=0){cout<<"El precio debe ser mayor a 0 Intentelo nuevamente."<<endl; cin>>precio;}
+                    temp.precio=precio;
+                    cout<<"Precio actualizado."<<endl;
+                break;
+            case 6:
+                // Editar stock (validar > 0)
+                cout<<"Ingrese el nuevo stock del producto: ";
+                float stock;
+                cin>>stock;
+                while(stock<=0){cout<<"El stock debe ser mayor a 0 Intentelo nuevamente."<<endl; cin>>stock;}
+                temp.stock=stock;
+                cout<<"Stock actualizado."<<endl;
+                break;
+            case 7:
+                // Editar fecha de registro
+                cout<<"ingrese la nueva fecha de registro del producto con Formato(YYYY-MM-DD): ";
+                getline(cin,respp);
+                while(respp.empty()){cout<<"La fecha de registro no puede estar vacia."<<endl;getline(cin,respp);}
+                while(respp.length()>sizeof(temp.fechaRegistro)){cout<<"La fecha de registro es demasiado larga."<<endl; getline(cin,respp);}
+                if (respp=="CANCELAR" || respp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+                strcpy(temp.fechaRegistro,respp.c_str());
+                cout<<"Fecha de registro actualizada."<<endl;
+                break;
+            case 8:
+                // Editar fecha de vencimiento
+                cout<<"ingrese la nueva fecha de vencimiento del producto con Formato(YYYY-MM-DD): ";
+                getline(cin,respp);
+                while(respp.empty()){cout<<"La fecha de vencimiento no puede estar vacia."<<endl;getline(cin,respp);}
+                while(respp.length()>sizeof(temp.fechavencimiento)){cout<<"La fecha de vencimiento es demasiado larga."<<endl; getline(cin,respp);}
+                if (respp=="CANCELAR" || respp=="0"){ cout<<"Edición cancelada."<<endl; break; }
+                strcpy(temp.fechavencimiento,respp.c_str());
+                cout<<"Fecha de vencimiento actualizada."<<endl;
+                break;
+            
+            case 9:
+                // Eliminar producto (confirmar antes)
+                cout<<"¿Está seguro que desea eliminar este producto? (S/N): ";
+                cin >> resp;
+                if(resp=='S'||resp=='s'){
+                    //eliminarProducto(tienda, idProducto);
+                    cout<<"Producto eliminado."<<endl;
+                    return;
+                }
+                else{
+                    cout<<"Eliminación cancelada."<<endl;
+                }
+                break;
+            
+            case 10:
+                // Guardar cambios (confirmar antes)
+                cout<<"Producto antes: ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<" | Fecha de Registro: "<<p.fechaRegistro<<" | Fecha de Vencimiento: "<<p.fechavencimiento<<endl;
+                cout<<"Producto Despues: ID: "<<temp.id<<" | Codigo: "<<temp.codigo<<" | Nombre: "<<temp.nombre<<" | Precio: "<<temp.precio<<" | Stock: "<<temp.stock<<" | Proveedor ID: "<<temp.idProveedor<<" | Fecha de Registro: "<<temp.fechaRegistro<<" | Fecha de Vencimiento: "<<temp.fechavencimiento<<endl;
+                cout<<"¿Desea guardar los cambios realizados al producto? (S/N): ";
+                //tienda->productos[idBuscado]=temp;
+                archivo.clear();
+                archivo.seekp((pos-1)*sizeof(Producto),ios::beg);
+                archivo.write(reinterpret_cast<char*>(&temp),sizeof(Producto));
+                archivo.clear();
+                cout<<"Cambios guardados."<<endl;
+                break;
+            case 0:
+                cout<<"Edición cancelada sin guardar."<<endl;
+                break;
+            default:
+                cout<<"Opción inválida."<<endl;
+        }
+    }while(ola!=0&&ola!=7);
+}
