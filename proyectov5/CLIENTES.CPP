@@ -1,6 +1,7 @@
 #include "CLIENTES.hpp"
 #include "HEADER.hpp"
 #include <iostream>
+#include <string>
 using namespace std;
 
  Cliente Cliente::buscarCliente(archivoHeader& cliente,fstream& archivoc,int cedula,string &nombre,string &direccion){
