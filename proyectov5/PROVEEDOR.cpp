@@ -53,15 +53,8 @@
                 //redimensionarProveedor(tienda);
                 cout<<"Arreglo de proveedores redimensionado a capacidad "<<tienda->capacidadProveedores<<"."<<endl;
             }*/
-            if(proveedor.cantidadRegistros>0){
-                archivo->seekp((proveedor.cantidadRegistros+posi)*sizeof(Proveedor),ios::beg);
-                cout<<"mayor que 0";
-            }
-            else{
-                archivo->seekp((0)*sizeof(Proveedor),ios::beg);
-                cout<<"igual que 0";
-            }
-            archivo->write(reinterpret_cast<char*>(&temp),sizeof(Proveedor));
+            
+            guardarArchivo(proveedor,*archivo,temp);
             proveedor.cantidadRegistros++;
             proveedor.registrosActivos++;
             proveedor.proximoID++;
@@ -80,12 +73,13 @@ void Proveedor::listarProveedores(archivoHeader proveedor,fstream* archivoprov,i
         cout<<"Listado de proveedores:\n";
         Proveedor p;
         int x=0;
-        archivoprov->clear();
-        archivoprov->seekg(0,ios::beg);
-        while(archivoprov->read(reinterpret_cast<char*>(&p),sizeof(Proveedor))||x<proveedor.cantidadRegistros){
+        for(int i=0;i<proveedor.cantidadRegistros;i++){
+            p=cargarArchivo<Proveedor>(proveedor,*archivoprov,i);
+            if(p.activo){
             cout<<"ID: "<<p.id<<" | Nombre: "<<p.nombre<<"\n";
             cout<<"X: "<<x<<endl;
             x++;
+            }
         }
         archivoprov->clear();
 
@@ -100,9 +94,8 @@ void Proveedor::eliminarProveedor(archivoHeader proveedores,fstream& archivop,in
     Proveedor p;
     bool encontrado = false;
     int total = 0,pos;
-    archivop.clear();
-    archivop.seekg(0,ios::beg);
-    while(archivop.read(reinterpret_cast<char*>(&p), sizeof(Proveedor))){
+    for(int i=0;i<proveedores.cantidadRegistros;i++){
+        p=cargarArchivo<Proveedor>(proveedores,archivop,i);
         if(p.id == id){
             encontrado = true;
             pos=archivop.tellg()/sizeof(Proveedor)-1;
@@ -112,10 +105,7 @@ void Proveedor::eliminarProveedor(archivoHeader proveedores,fstream& archivop,in
     archivop.clear();
     }
     p.activo=0;
-    archivop.clear();
-    archivop.seekp(pos*sizeof(Proveedor),ios::beg);
-    archivop.write(reinterpret_cast<char*>(&p),sizeof(Proveedor));
-    archivop.clear();
+    guardarArchivo(proveedores,archivop,p,pos);
     proveedores.cantidadRegistros--;
     proveedores.registrosActivos--;
     if(proveedores.cantidadRegistros > 0) proveedores.cantidadRegistros--;
@@ -130,9 +120,8 @@ void Proveedor::editarProveedor(archivoHeader proveedor,fstream &archivop, int i
     }
     Proveedor p;
     int posicion;
-    archivop.clear();
-    archivop.seekg(0,ios::beg);
-    while(archivop.read(reinterpret_cast<char*>(&p),sizeof(Proveedor))){
+    for(int i=0;i<proveedor.cantidadRegistros;i++){
+        p=cargarArchivo<Proveedor>(proveedor,archivop,i);
         if(p.id==idProveedor){
             archivop.clear();
             posicion=archivop.tellg()/sizeof(Proveedor)-1;
@@ -170,9 +159,7 @@ void Proveedor::editarProveedor(archivoHeader proveedor,fstream &archivop, int i
             case 3:
                 cout<<"Guardando cambios...\n";\
                 {
-                    archivop.clear();
-                    archivop.seekp(posicion*sizeof(Proveedor),ios::beg);
-                    archivop.write(reinterpret_cast<char*>(&p),sizeof(Proveedor));
+                    guardarArchivo(proveedor, archivop,p);
                 }
                 cout<<"Proveedor actualizado."<<endl;
                 return;
@@ -198,15 +185,12 @@ Proveedor* Proveedor::buscarProveedor(archivoHeader proveedor,fstream* archivo,i
     Proveedor p;
     Proveedor* parreglo=new Proveedor[proveedor.cantidadRegistros];
     Proveedor* parregloencontrados=new Proveedor[proveedor.cantidadRegistros];
-    archivo->clear();
-    archivo->seekg(0,ios::beg);
-    while(archivo->read(reinterpret_cast<char*>(&p), sizeof(Proveedor))||x<proveedor.cantidadRegistros){
+    for(int i=0;i<proveedor.cantidadRegistros;i++){
+        p=cargarArchivo<Proveedor>(proveedor,*archivo,i);
         cout<<"id:"<<p.id<<endl;
         parreglo[x]=p;
         x++;
     }
-    archivo->clear();
-
     if(opcion == 1){
         cout<<"aqui:"<<endl;
         archivo->seekg(0,ios::beg);

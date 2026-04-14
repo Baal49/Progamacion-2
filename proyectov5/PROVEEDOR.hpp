@@ -1,5 +1,7 @@
 #ifndef PROVEEDOR_HPP
 #define PROVEEDOR_HPP
+#include "ARCHIVO.hpp"
+#include <string>
 #include <fstream>
 #include "HEADER.hpp"
 using namespace std;
