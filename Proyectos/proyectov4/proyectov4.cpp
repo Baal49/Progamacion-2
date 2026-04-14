@@ -17,6 +17,7 @@ class Proveedor {
     public:
     int id=0;
     char nombre[100];
+    bool activo=1;
     // otros campos omitidos para brevedad
     void Crearproveedor(archivoHeader& proveedor, fstream* archivo,int posi){
     cin.ignore(numeric_limits<streamsize>::max(),'\n');
@@ -69,11 +70,11 @@ class Proveedor {
                 cout<<"Arreglo de proveedores redimensionado a capacidad "<<tienda->capacidadProveedores<<"."<<endl;
             }*/
             if(proveedor.cantidadRegistros>0){
-                archivo->seekp((proveedor.cantidadRegistros)*sizeof(Proveedor),ios::beg);
+                archivo->seekp((proveedor.cantidadRegistros+posi)*sizeof(Proveedor),ios::beg);
                 cout<<"mayor que 0";
             }
             else{
-                archivo->seekp((posi)*sizeof(Proveedor),ios::beg);
+                archivo->seekp((0)*sizeof(Proveedor),ios::beg);
                 cout<<"igual que 0";
             }
             archivo->write(reinterpret_cast<char*>(&temp),sizeof(Proveedor));
@@ -106,81 +107,59 @@ void listarProveedores(archivoHeader proveedor,fstream* archivoprov,int posi){
 
 }
 
-void eliminarProveedor(archivoHeader proveedores,fstream* archivop,int id){
-    const char* rutaTemp = "proveedores_tmp.bin";
+void eliminarProveedor(archivoHeader proveedores,fstream& archivop,int id){
     if(!archivop){
         cout<<"No se puede abrir el archivo de proveedores: "<<"."<<endl;
-        return;
-    }
-    const char* rutaOriginal="C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin";
-    fstream archivoTemp(rutaTemp, ios::out | ios::binary | ios::trunc);
-    if(!archivoTemp){
-        cout<<"No se puede crear archivo temporal para eliminar proveedor."<<endl;
         return;
     }
 
     Proveedor p;
     bool encontrado = false;
-    int total = 0;
-    archivop->clear();
-    archivop->seekg(0,ios::beg);
-    while(archivop->read(reinterpret_cast<char*>(&p), sizeof(Proveedor))){
+    int total = 0,pos;
+    archivop.clear();
+    archivop.seekg(0,ios::beg);
+    while(archivop.read(reinterpret_cast<char*>(&p), sizeof(Proveedor))){
         if(p.id == id){
             encontrado = true;
+            pos=archivop.tellg()/sizeof(Proveedor)-1;
+            archivop.clear();
             continue;
         }
-    archivop->clear();
-    archivoTemp.clear();
-    archivoTemp.seekp(0,ios::beg);
-    archivoTemp.write(reinterpret_cast<char*>(&p), sizeof(Proveedor));
-        total++;
+    archivop.clear();
     }
-    archivoTemp.close();
-    archivop->close();
-    if(!encontrado){
-        cout<<"Proveedor con ID "<<id<<" no encontrado."<<endl;
-        remove(rutaTemp);
-        return;
-    }
-
-    if(remove(rutaOriginal) != 0){
-        cout<<"Error al eliminar el archivo original de proveedores."<<endl;
-        return;
-    }
-    if(rename(rutaTemp, rutaOriginal) != 0){
-        cout<<"Error al renombrar el archivo temporal de proveedores."<<endl;
-        return;
-    }
-    archivop->open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin",ios::binary|ios::in|ios::out);
+    p.activo=0;
+    archivop.clear();
+    archivop.seekp(pos*sizeof(Proveedor),ios::beg);
+    archivop.write(reinterpret_cast<char*>(&p),sizeof(Proveedor));
+    archivop.clear();
     proveedores.cantidadRegistros--;
     proveedores.registrosActivos--;
     if(proveedores.cantidadRegistros > 0) proveedores.cantidadRegistros--;
     cout<<"Proveedor con ID "<<id<<" eliminado correctamente."<<endl;
 }
 
-void editarProveedor(archivoHeader proveedor,fstream* archivop, int idProveedor){
+void editarProveedor(archivoHeader proveedor,fstream &archivop, int idProveedor){
     
     if(!archivop){
         cout<<"No se puede abrir el archivo de proveedores para edición."<<endl;
         return;
     }
-
-    vector<Proveedor> lista;
     Proveedor p;
-    int idx = -1;
-    while(archivop->read(reinterpret_cast<char*>(&p), sizeof(Proveedor))){
-        lista.push_back(p);
-    }
-
-    for(size_t i=0; i<lista.size(); i++){
-        if(lista[i].id == idProveedor){ idx = i; break; }
-    }
-    if(idx == -1){ cout<<"Proveedor no encontrado."<<endl; return; }
-
-    Proveedor temp = lista[idx];
-    int respuesta = -1;
+    int posicion;
+    archivop.clear();
+    archivop.seekg(0,ios::beg);
+    while(archivop.read(reinterpret_cast<char*>(&p),sizeof(Proveedor))){
+        if(p.id==idProveedor){
+            archivop.clear();
+            posicion=archivop.tellg()/sizeof(Proveedor)-1;
+             cout<<"Proveedor encontrado: ID: "<<p.id<<" | Nombre: "<<p.nombre<<"en la posicion: "<<posicion+1<<endl;
+            break;
+        }
+        archivop.clear();
+    }  
+    
     string nuevaLinea;
-
+    int respuesta;
     do{
         cout<<"Que desea editar del proveedor?\n";
         cout<<"1. Id\n";
@@ -194,24 +173,22 @@ void editarProveedor(archivoHeader proveedor,fstream* archivop, int idProveedor)
         switch(respuesta){
             case 1:
                 cout<<"Ingrese nuevo ID de proveedor (0 para cancelar): ";
-                if(!(cin>>temp.id)){ cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); cout<<"Entrada inválida."<<endl; break; }
+                if(!(cin>>p.id)){ cin.clear(); cin.ignore(numeric_limits<streamsize>::max(), '\n'); cout<<"Entrada inválida."<<endl; break; }
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                if(temp.id==0){ cout<<"Edición cancelada."<<endl; break; }
+                if(p.id==0){ cout<<"Edición cancelada."<<endl; break; }
                 break;
             case 2:
                 cout<<"Ingrese el nuevo nombre del proveedor: ";
                 getline(cin, nuevaLinea);
                 while(nuevaLinea.empty()){ cout<<"El nombre no puede estar vacío. Ingrese de nuevo: "; getline(cin,nuevaLinea); }
-                strncpy(temp.nombre, nuevaLinea.c_str(), sizeof(temp.nombre)-1);
-                temp.nombre[sizeof(temp.nombre)-1] = '\0';
+                strncpy(p.nombre, nuevaLinea.c_str(), sizeof(p.nombre)-1);
                 break;
             case 3:
-                cout<<"Guardando cambios...\n";
-                lista[idx] = temp;
+                cout<<"Guardando cambios...\n";\
                 {
-                    fstream out("Progamacion-2/Proyectos/proyectov4/proveedores.bin", ios::out | ios::binary | ios::trunc);
-                    if(!out){ cout<<"Error al abrir archivo de proveedores para guardar."<<endl; return; }
-                    for(const auto &pr : lista){ out.write(reinterpret_cast<const char*>(&pr), sizeof(Proveedor)); }
+                    archivop.clear();
+                    archivop.seekp(posicion*sizeof(Proveedor),ios::beg);
+                    archivop.write(reinterpret_cast<char*>(&p),sizeof(Proveedor));
                 }
                 cout<<"Proveedor actualizado."<<endl;
                 return;
@@ -317,29 +294,6 @@ public:
  char fecharegitro[11]; //formato:YYYY-MM-DD
 };
 class Tienda {
-    public:
-    char nombre[100];
-    char rif[20];
-
-    /*Producto* productos = nullptr;
-    int capacidadProductos = 0; // capacidad actual del arreglo
-    int cantidadProductos = 0;  // cuántos productos están registrados*/
-
-    Proveedor* proveedores = nullptr;
-    int capacidadProveedores = 0;
-    int cantidadProveedores = 0;
-
-    Transaccion* transacciones = nullptr;
-    int capacidadTransacciones = 0;
-    int cantidadTransacciones = 0;
-
-    Cliente* clientes=nullptr;
-    int capacidadClientes = 0;
-    int cantidadClientes = 0;
-
-    int siguienteIdProducto = 1;
-    int siguienteIdProveedor = 1;
-    int siguienteIdTransaccion = 1;
 };
 
 class Producto {
@@ -353,7 +307,7 @@ class Producto {
     int stock=0;               // Cantidad en inventario
     char fechaRegistro[11];    // Formato: YYYY-MM-DD
     char fechavencimiento[11]; //Formato: YYYY-MM-DD (opcional)
-
+    bool registroactivo;
     void Crearproductos(archivoHeader* proveedores,fstream& archivoproducto,archivoHeader& tienda,fstream& archivoproveedor,int posiprod,int posiprov){
     string input;
     int cantidad = 0;
@@ -403,14 +357,19 @@ class Producto {
             if(input=="CANCELAR" ||input=="cancelar" || input=="Cancelar"|| input=="0"){ cout<<"Creación cancelada."<<endl; return; }
             int idProv = 0;
              idProv = stoi(input); 
+             archivoproveedor.clear();
+             archivoproveedor.seekg(0,ios::beg);
             try{
                 Proveedor p;
+                int x=0;
                 while(archivoproveedor.read(reinterpret_cast<char*>(&p),sizeof(Proveedor))){
                     cout<<"id del proveedor: "<<p.id<<" nombre del proveedor: "<<p.nombre<<endl;
                     if(p.id==idProv){
                         proveedorValido=true;
+                        archivoproveedor.clear();
                         break;
                     }
+                    archivoproveedor.clear();
                 }
             }
             catch(...){
@@ -481,7 +440,7 @@ class Producto {
             else{
                 archivoproducto.clear();
                 archivoproveedor.clear();
-                archivoproducto.seekp((posiprod+1)*sizeof(Producto),ios::beg);
+                archivoproducto.seekp((0)*sizeof(Producto),ios::beg);
                 cout<<"entro aqui 0"<<endl;
             }
             archivoproducto.write(reinterpret_cast<char*>(&temp),sizeof(Producto)) ;
@@ -571,6 +530,7 @@ Producto buscarProducto(archivoHeader* productosheader,fstream& archivo,int id,s
             return p2[opcion2];
     }
 }
+
 //return tienda->productos[posicion];
 };
 bool codigoDuplicado(archivoHeader* tienda,fstream* archivo ,const string& codigo){
@@ -637,12 +597,76 @@ void listarProductos(fstream* archivop,fstream* archivosprov, archivoHeader prod
         }
         cout<<"╚════╩═══════════╩══════════════════╩══════════════╩═══════╩════════╩══════╝\n";
 }
+void eliminarProducto(archivoHeader &productos,fstream& archivop,int id){
+    if(!archivop.is_open()){
+        cout<<"La tienda no ha sido creada"<<endl;
+        return;
+    }
+    Producto p;
+    int pos;
+    bool encontrado = false;
+    archivop.seekp(0,ios::beg);
+    while(archivop.read(reinterpret_cast<char*>(&p), sizeof(Producto))){
+        if(p.id == id){
+            encontrado = true;
+            p.registroactivo=0;
+            pos=archivop.tellg()/sizeof(Producto)-1;
+            archivop.clear();
+            break;
+        }
+        archivop.clear();
+    }
+    archivop.clear();
+    archivop.seekp(pos*sizeof(Producto),ios::beg);
+    archivop.write(reinterpret_cast<char*>(&p),sizeof(Producto));
+    archivop.clear();
+    productos.registrosActivos--;
+    cout<<"Producto con ID "<<id<<" eliminado correctamente."<<endl;
+    if(productos.cantidadRegistros>0){
+        cout<<"Producto con id: "<<id<<" eliminado correctamente"<<endl;
+    }
+}
+void modificarstock(archivoHeader productos,fstream& archivop,int id,int cant,int opt){
+    if(!archivop.is_open()){
+        cout<<"La tienda no ha sido creada"<<endl;
+        return;
+    }
+    Producto p;
+    int pos;
+    bool encontrado = false;
+    archivop.seekp(0,ios::beg);
+    while(archivop.read(reinterpret_cast<char*>(&p), sizeof(Producto))){
+        if(p.id == id&&opt==1){
+            encontrado = true;
+            p.stock=p.stock-cant;
+            pos=archivop.tellg()/sizeof(Producto)-1;
+            archivop.clear();
+
+        }
+        if(p.id == id&&opt==2){
+            encontrado = true;
+            p.stock=p.stock+cant;
+            pos=archivop.tellg()/sizeof(Producto)-1;
+            archivop.clear();
+        }
+        archivop.clear();
+    }
+    if(!encontrado){
+        cout<<"No se encontró el producto con ID "<<id<<". Ningún cambio aplicado."<<endl;
+        return;
+    }
+    archivop.clear();
+    archivop.seekp(pos*sizeof(Producto),ios::beg);
+    archivop.write(reinterpret_cast<char*>(&p),sizeof(Producto));
+    archivop.clear();
+    cout<<"Producto con ID "<<id<<" modificado correctamente."<<endl;
+}
 };
 
 
 
 
-void inicializarTienda(Tienda* tienda){
+/*void inicializarTienda(Tienda* tienda){
     if(!tienda) return;
     cin.ignore(numeric_limits<streamsize>::max(),'\n');
     cout<<"Ingrese el RIF de la tienda: ";
@@ -652,7 +676,7 @@ void inicializarTienda(Tienda* tienda){
     int cap = 5;
     /*tienda->capacidadProductos = cap;
     tienda->productos = new Producto[tienda->capacidadProductos];
-    tienda->siguienteIdProducto = 1;*/
+    tienda->siguienteIdProducto = 1;
 
     // Proveedores (mínimo 1 para permitir crear productos que referencien proveedores)
     tienda->capacidadProveedores = cap;
@@ -664,7 +688,7 @@ void inicializarTienda(Tienda* tienda){
     //Clientes
     tienda->capacidadClientes=cap;
     tienda->clientes=new Cliente[cap];
-}
+}*/
 
 
 // Busca transacciones por ID de producto usando fichero binario
@@ -936,22 +960,23 @@ void buscarTransaccionesPorProducto(Tienda* tienda, int idProducto){
     }
 
 Cliente buscarCliente(archivoHeader& cliente,fstream& archivoc,int cedula,string &nombre,string &direccion){
-    if(cliente.cantidadRegistros<=0){ cout<<"Tienda no inicializada."<<endl; return ; }
+    Cliente c;
+    if(cliente.cantidadRegistros<=0){ cout<<"Tienda no inicializada."<<endl; return c; }
     const char* ruta = "clientes.bin";
     fstream archivo(ruta, ios::binary | ios::in);
     if(!archivo){
         cout<<"No se puede abrir el archivo de clientes: "<<ruta<<". Asegurese de que exista."<<endl;
-        return ;
+        return c;
     }
     archivo.seekg(0, ios::end);
     streampos tam = archivo.tellg();
     if(cliente.cantidadRegistros<=0){
         cout<<"No hay clientes registrados en el archivo binario."<<endl;
-        return ;
+        return c;
     }
     archivo.seekg(0, ios::beg);
     int x=0;
-    Cliente c;
+    
     while(archivo.read(reinterpret_cast<char*>(&c), sizeof(Cliente))||cliente.cantidadRegistros>x){
         if(c.cedula == cedula){
             nombre = c.nombre;
@@ -962,69 +987,15 @@ Cliente buscarCliente(archivoHeader& cliente,fstream& archivoc,int cedula,string
     }
 
     cout<<"No existe un cliente con cedula "<<cedula<<" en el archivo binario."<<endl;
-    return ;
+    return c;
 }
 
-void eliminarProducto(Tienda* tienda,int id){
-    if(tienda==nullptr){
-        cout<<"La tienda no ha sido creada"<<endl;
-        return;
-    }
-    const char* rutaOriginal = "productos.bin";
-    const char* rutaTemp = "productos_tmp.bin";
 
-    fstream archivoOriginal(rutaOriginal, ios::in | ios::binary);
-    if(!archivoOriginal){
-        cout<<"No se puede abrir el archivo de productos: "<<rutaOriginal<<"."<<endl;
-        return;
-    }
-
-    fstream archivoTemp(rutaTemp, ios::out | ios::binary | ios::trunc);
-    if(!archivoTemp){
-        cout<<"No se puede crear archivo temporal para eliminar producto."<<endl;
-        archivoOriginal.close();
-        return;
-    }
-
-    Producto p;
-    
-    bool encontrado = false;
-    int total = 0;
-
-    while(archivoOriginal.read(reinterpret_cast<char*>(&p), sizeof(Producto))){
-        if(p.id == id){
-            encontrado = true;
-            continue;
-        }
-        archivoTemp.write(reinterpret_cast<char*>(&p), sizeof(Producto));
-        total++;
-    }
-
-    archivoOriginal.close();
-    archivoTemp.close();
-
-    if(!encontrado){
-        cout<<"No se encontró el producto con ID "<<id<<". Ningún cambio aplicado."<<endl;
-        remove(rutaTemp);
-        return;
-    }
-
-    if(remove(rutaOriginal) != 0){
-        cout<<"Error al eliminar el archivo original de productos."<<endl;
-        return;
-    }
-    if(rename(rutaTemp, rutaOriginal) != 0){
-        cout<<"Error al renombrar el archivo temporal de productos."<<endl;
-        return;
-    }
-
-    cout<<"Producto con ID "<<id<<" eliminado correctamente."<<endl;
-}
-void editarProducto(archivoHeader producto,fstream* archivo,fstream* archivoprov, int idProducto){
+void editarProducto(archivoHeader &producto,fstream &archivo,fstream* archivoprov, int idProducto){
     //Funcion para editar algun aspecto del producto
     
     int idBuscado=0;
-    int provvaalido=0;
+    int provvaalido=0,pos;
     bool encontrado=false;
     int resp;
     Producto temp,p;
@@ -1032,13 +1003,18 @@ void editarProducto(archivoHeader producto,fstream* archivo,fstream* archivoprov
     cout<<"id producto: "<<idProducto;
     int i=0;
     string respp;
-    while(archivo->read(reinterpret_cast<char*>(&p),sizeof(Producto))){
+    archivo.clear();
+    archivo.seekg(0,ios::beg);
+    while(archivo.read(reinterpret_cast<char*>(&p),sizeof(Producto))){
         if(p.id==idProducto){
             idBuscado=i;
+            pos=archivo.tellg()/sizeof(Producto);
+            archivo.clear();
             encontrado=true;
             break;
         }
         else{
+            archivo.clear();
             i++;
         }
     }
@@ -1069,7 +1045,7 @@ void editarProducto(archivoHeader producto,fstream* archivo,fstream* archivoprov
                 // Editar código (validar único)
                 cout <<"Ingrese el nuevo código del producto o 0 para cancelar: ";
                 getline(cin,respp);
-                   while(p.codigoDuplicado(&producto,archivo, respp)) { cout<<"Codigo ya existe Intentelo nuevamente."<<endl; getline(cin,respp); }
+                   while(p.codigoDuplicado(&producto,&archivo, respp)) { cout<<"Codigo ya existe Intentelo nuevamente."<<endl; getline(cin,respp); }
                    if (respp.empty()){ cout<<"El código no puede estar vacío. Edición cancelada."<<endl; break; }
                    if ( respp=="0"||respp=="CANCELAR"){ cout<<"Edición cancelada."<<endl; break; }
                 // Asignar nuevo código al producto
@@ -1176,7 +1152,10 @@ void editarProducto(archivoHeader producto,fstream* archivo,fstream* archivoprov
                 cout<<"Producto Despues: ID: "<<temp.id<<" | Codigo: "<<temp.codigo<<" | Nombre: "<<temp.nombre<<" | Precio: "<<temp.precio<<" | Stock: "<<temp.stock<<" | Proveedor ID: "<<temp.idProveedor<<" | Fecha de Registro: "<<temp.fechaRegistro<<" | Fecha de Vencimiento: "<<temp.fechavencimiento<<endl;
                 cout<<"¿Desea guardar los cambios realizados al producto? (S/N): ";
                 //tienda->productos[idBuscado]=temp;
-                archivo->write(reinterpret_cast<char*>(&temp),sizeof(Producto));
+                archivo.clear();
+                archivo.seekp((pos-1)*sizeof(Producto),ios::beg);
+                archivo.write(reinterpret_cast<char*>(&temp),sizeof(Producto));
+                archivo.clear();
                 cout<<"Cambios guardados."<<endl;
                 break;
             case 0:
@@ -1188,69 +1167,16 @@ void editarProducto(archivoHeader producto,fstream* archivo,fstream* archivoprov
     }while(ola!=0&&ola!=7);
 }
 
-void eliminarheader(archivoHeader header,fstream& archivo,char* ruta,int opcion,int posi){
-    const char* rutaTemp = "headertemp.bin";
+void actualizarheader(archivoHeader header,fstream& archivo){
+    int x=0;
     if(!archivo.is_open()){
         cout<<"No se pudo abrir el archivo"<<endl;
         return;
     }
-    fstream archivotemp(rutaTemp,ios::binary|ios::out|ios::in|ios::trunc);
-    if(!archivotemp.is_open()){
-        cout<<"No se puede crear archivo temporal para eliminar proveedor."<<endl;
-        return;
-    }
-    if(opcion==1){
-        Producto p;
-        int total=0;
         archivo.clear();
-        archivo.seekg(posi*sizeof(archivoHeader),ios::beg);
-        while (archivo.read(reinterpret_cast<char*>(&p),sizeof(Producto)))
-        {
-            archivo.clear();
-            archivotemp.clear();
-            archivotemp.seekp(0,ios::beg);
-            archivotemp.write(reinterpret_cast<char*>(&p), sizeof(Producto));
-            total++;
-        }
-        archivotemp.close();
-        archivo.close();
-
-        if(remove(ruta) != 0){
-            cout<<"Error al eliminar el archivo original de proveedores."<<endl;
-            return;
-        }
-        if(rename(rutaTemp, ruta) != 0){
-            cout<<"Error al renombrar el archivo temporal de proveedores."<<endl;
-            return;
-        }
-        archivo.open(ruta);
-    }
-    if(opcion==2){
-        Proveedor p;
-        int total=0;
+        archivo.seekg(0,ios::beg);
+        archivo.write(reinterpret_cast<char*>(&header),sizeof(archivoHeader));
         archivo.clear();
-        archivo.seekg(posi*sizeof(archivoHeader),ios::beg);
-        while (archivo.read(reinterpret_cast<char*>(&p),sizeof(Proveedor)))
-        {
-            archivo.clear();
-            archivotemp.clear();
-            archivotemp.seekp(0,ios::beg);
-            archivotemp.write(reinterpret_cast<char*>(&p), sizeof(Proveedor));
-            total++;
-        }
-        archivotemp.close();
-        archivo.close();
-
-        if(remove(ruta) != 0){
-            cout<<"Error al eliminar el archivo original de proveedores."<<endl;
-            return;
-        }
-        if(rename(rutaTemp, ruta) != 0){
-            cout<<"Error al renombrar el archivo temporal de proveedores."<<endl;
-            return;
-        }
-        archivo.open(ruta);
-    }
 
 }
 void venta(archivoHeader& producto,archivoHeader transaccion,archivoHeader& cliente,archivoHeader& pt,fstream& archivop,fstream& archivoc,fstream& archivot,fstream& archivopt){
@@ -1273,19 +1199,14 @@ void venta(archivoHeader& producto,archivoHeader transaccion,archivoHeader& clie
         archivopt.seekp((0)*sizeof(Productoventa),ios::beg);
     }
     if(c.cedula==0){
-        cout<<"Cliente no encontrado. Desea registrarlo? (S/N): ";
-        cin>>respuesta;
-        if(respuesta=="S"||respuesta=="s"){
-           // Crearcliente(tienda);
-        } else {
+        cout<<"Cliente no encontrado. Intente de nuevo o Cree otro cliente";
             cout<<"Venta cancelada."<<endl;
             return;
         }
-    } else {
+    else {
         cout<<"Nombre del cliente: "<<nombre<<" Cedula: "<<cedu<<" Direccion: "<<direccion<<"\n";
         int opt,id,sub,cantp=1;
         bool cantver=0;
-        //tienda->transacciones[tienda->siguienteIdTransaccion-1].productos=new Productoventa[cantp];
         do{
             int cant;
             cout<<"introduce el id del producto que se va a llevar: ";
@@ -1309,6 +1230,7 @@ void venta(archivoHeader& producto,archivoHeader transaccion,archivoHeader& clie
         archivopt.write(reinterpret_cast<char*>(&venta),sizeof(Productoventa));
         archivopt.flush();
         archivopt.clear();
+        p.modificarstock(producto,archivop,p.id,cant,1);
         pt.cantidadRegistros++;
         pt.proximoID++;
         do{
@@ -1317,7 +1239,6 @@ void venta(archivoHeader& producto,archivoHeader transaccion,archivoHeader& clie
         getline(cin,input);
         if(input=="S"||input=="s"){
             opt=1;
-            //redimensionarProductosventa(tienda->transacciones);
         }
         else if(input=="N"||input=="n"){
             opt=0;
@@ -1332,8 +1253,19 @@ void venta(archivoHeader& producto,archivoHeader transaccion,archivoHeader& clie
         t.idt=transaccion.proximoID++;
         t.total=sub;
         t.tipo=2;
+        //cin.ignore(numeric_limits<streamsize>::max(),'\n');
+        string input,input2;
         cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
+        cin >> input;
+        
         strncpy(t.fecha, input.c_str(), sizeof(t.fecha)-1);
+        cout<<"Quieres ponerle descripcion a la transaccion? S para si N para no"<<endl;
+        cin>>input2;
+        if(input2=="S"||input=="s"){
+            cout<<"Introduzca la descripcion de la transaccion"<<endl;
+            string input3;
+            strncpy(t.descripcion,input3.c_str(),sizeof(t.descripcion));
+        }
         archivot.clear();
         if(transaccion.cantidadRegistros<=0){
             archivot.seekp((transaccion.cantidadRegistros+1)*sizeof(transaccion),ios::beg);
@@ -1362,7 +1294,6 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         cout<<"Introduzca S para registrarlo o N para cancelar";
         cin>>respuesta;
         if(respuesta=='S'||respuesta=='s'){
-             //prov->Crearproveedor(proveedor,archivoprov);
         }
         else{
             return ;
@@ -1381,8 +1312,6 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         else{
             archivopt.seekp((1)*sizeof(Productoventa),ios::beg);
         }
-
-        //tienda->transacciones[tienda->siguienteIdTransaccion-1].productos=new Productoventa[cantp];
         do{
             int cant;
             cout<<"introduce el id del producto que se va a comprar: ";
@@ -1407,6 +1336,7 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         archivopt.write(reinterpret_cast<char*>(&venta),sizeof(Productoventa));
         archivopt.flush();
         archivopt.clear();
+        p.modificarstock(producto,archivop,p.id,cant,2);
         pt.cantidadRegistros++;
         pt.proximoID++;
         do{
@@ -1415,7 +1345,6 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         getline(cin,input);
         if(input=="S"||input=="s"||input=="SI"||input=="si"){
             opt=1;
-            //redimensionarProductosventa(tienda->transacciones);
         }
         else if(input=="N"||input=="n"||input=="NO"||input=="no"){
             opt=2;
@@ -1430,15 +1359,17 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
         t.idt=transaccion.proximoID++;
         t.total=sub;
         t.tipo=1;
-        cin.ignore(numeric_limits<streamsize>::max(),'\n');
-        cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
+        //cin.ignore(numeric_limits<streamsize>::max(),'\n');
         string input,input2;
+        cout<<"introduzca la fecha de la transaccion en formato YYYY-MM-DD: ";
+        getline(cin,input);
         strncpy(t.fecha, input.c_str(), sizeof(t.fecha)-1);
         cout<<"Quieres ponerle descripcion a la transaccion? S para si N para no"<<endl;
         cin>>input2;
         if(input2=="S"||input=="s"){
             cout<<"Introduzca la descripcion de la transaccion"<<endl;
             string input3;
+            getline(cin,input3);
             strncpy(t.descripcion,input3.c_str(),sizeof(t.descripcion));
         }
         archivot.clear();
@@ -1462,8 +1393,8 @@ void compra(Tienda* tienda,archivoHeader producto, archivoHeader proveedor,archi
 
 int main(){
     Tienda tienda;
+    bool existp,existprov,existc,existt,existpt;
     archivoHeader productos,proveedores,clientes,transacciones,pt;
-    strcpy(tienda.nombre, "Farmacia pipo");
     Producto p;
     Proveedor prov;
     Cliente c;
@@ -1487,10 +1418,12 @@ int main(){
         proveedores.proximoID=1;
         proveedores.registrosActivos=0;
         proveedores.version=0;
+        existprov=0;
         cout<<"posicion actual de proveedores"<<posiprov<<endl;
         cout<<"No se encontraron proveedores."<<endl;
     }
     else{
+        existprov=1;
         cout<<"posicion actual de proveedores"<<posiprov<<endl;
         cout<<"Se encontraron proveedores."<<endl;
     }
@@ -1502,13 +1435,14 @@ int main(){
     archivoclientes.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/clientes.bin",ios::binary|ios::out);
     archivoclientes.close();
     archivoclientes.open("C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/clientes.bin",ios::binary|ios::in|ios::out);
-     archivoclientes.clear(); 
+    archivoclientes.clear(); 
     archivoclientes.seekp(0, ios::beg);
     archivoclientes.seekg(0, ios::beg);
     archivoclientes.read(reinterpret_cast<char*>(&clientes),sizeof(archivoHeader));
     posic=archivoclientes.tellg()/sizeof(archivoHeader);
     archivoclientes.clear(); 
     if(posic<=0){
+        existc=0;
         clientes.cantidadRegistros=0;
         clientes.proximoID=0;
         clientes.registrosActivos=0;
@@ -1516,6 +1450,7 @@ int main(){
         cout<<"No se encontraron clientes."<<endl;
     }
     else{
+        existc=1;
         cout<<"Se encontraron clientes."<<endl;
         cout<<"El valor de clientes es: "<<clientes.cantidadRegistros<<endl;
         cout << "Nueva posicion de lectura: " <<posic<< endl;
@@ -1528,6 +1463,7 @@ int main(){
     archivotransacciones.read(reinterpret_cast<char*>(&transacciones),sizeof(archivoHeader));
     posit=archivotransacciones.tellg()/sizeof(archivoHeader);
     if(posit<=0){
+        existt=0;
         transacciones.cantidadRegistros=0;
         transacciones.proximoID=0;
         transacciones.registrosActivos=0;
@@ -1535,6 +1471,7 @@ int main(){
         cout<<"No se encontraron transacciones."<<endl;
     }
     else{
+        existt=1;
         cout<<"Se encontraron transacciones."<<endl<<"La cantidad de transacciones es: "<<transacciones.cantidadRegistros;
     }
     archivoproductos.clear(); 
@@ -1543,18 +1480,20 @@ int main(){
     archivoproductos.read(reinterpret_cast<char*>(&productos),sizeof(archivoHeader));
     posiprod=archivoproductos.tellg()/sizeof(archivoHeader);
     archivoproductos.clear(); 
-    if(posiprov<=0){
+    if(posiprod<=0){
+        existp=0;
         productos.cantidadRegistros=0;
         productos.proximoID=0; 
         productos.registrosActivos=0;
         productos.version=0;
-        posiprov=archivoproveedores.tellg()/sizeof(archivoHeader);
+        posiprod=archivoproductos.tellg()/sizeof(archivoHeader);
         cout << "Nueva posicion de lectura: " << posiprod << endl;
         cout<<"La cantidad de productos es: "<<productos.cantidadRegistros<<endl;
         cout<<"No se encontraron productos."<<endl;
         archivoproductos.clear(); 
     }
     else{
+        existp=1;
         posiprod=archivoproductos.tellg()/sizeof(archivoHeader);
         cout << "Nueva posicion de lectura: " << posiprod << endl;
         cout<<"La cantidad de productos es: "<<productos.cantidadRegistros<<endl;
@@ -1586,7 +1525,7 @@ int main(){
          char* rutaproveedores="C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin";
         cout <<"╔═══════════════════════════════════════════╗"<<endl;
         cout <<"║   SISTEMA DE GESTIÓN DE INVENTARIO        ║"<<endl;
-        cout <<"║   Tienda: "<<tienda.nombre<<          "\t\t    ║"<<endl;
+        cout <<"║   Tienda: Farmacia pipo                   ║"<<endl;
         cout <<"╚═══════════════════════════════════════════╝"<<endl;
     
         cout <<"1. Gestión de Productos" <<endl;
@@ -1636,10 +1575,10 @@ int main(){
                     case 3:
                         cout<<"ingrese el id del producto: ";
                         cin>>id;
-                        editarProducto(productos,&archivoproductos,&archivoproveedores,id);
+                        editarProducto(productos,archivoproductos,&archivoproveedores,id);
                         break;
                     case 4:
-                        //actualizarStock(&tienda);
+                        p.modificarstock(productos,archivoproductos,1,1,1);
                         break;
                     case 5:
                         p.listarProductos(&archivoproductos,&archivoproveedores,productos,proveedores,posiprod,posiprov);
@@ -1650,7 +1589,7 @@ int main(){
                     case 6:
                         cout<<"ingrese el id del del producto que se quiere borrar";
                         cin>>id;
-                        eliminarProducto(&tienda, id); 
+                        p.eliminarProducto(productos,archivoproductos, id); 
                         break;
                     case 0:
                         cout<<"Volviendo al menú principal..."<<endl;
@@ -1815,13 +1754,8 @@ int main(){
                 break;
             case 5:
                 cout<<"Saliendo del programa..."<<endl;
-                eliminarheader(productos,archivoproductos,rutaproductos,1,posiprod);
-                
-                eliminarheader(proveedores,archivoproveedores,rutaproveedores,1,posiprov);
-                archivoproductos.seekg(0,ios::beg);
-                archivoproductos.write(reinterpret_cast<char*>(&productos),sizeof(archivoHeader));
-                archivoproveedores.seekg(0,ios::beg);
-                archivoproveedores.write(reinterpret_cast<char*>(&proveedores),sizeof(archivoHeader));
+                actualizarheader(productos,archivoproductos);
+                actualizarheader(proveedores,archivoproveedores);
                 archivoclientes.seekg(0,ios::beg);
                 archivoclientes.write(reinterpret_cast<char*>(&clientes),sizeof(archivoHeader));
                 archivoclientes.close();
