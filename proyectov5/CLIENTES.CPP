@@ -7,22 +7,15 @@ using namespace std;
  Cliente Cliente::buscarCliente(archivoHeader& cliente,fstream& archivoc,int cedula,string &nombre,string &direccion){
     Cliente c;
     if(cliente.cantidadRegistros<=0){ cout<<"Tienda no inicializada."<<endl; return c; }
-    const char* ruta = "clientes.bin";
-    fstream archivo(ruta, ios::binary | ios::in);
-    if(!archivo){
-        cout<<"No se puede abrir el archivo de clientes: "<<ruta<<". Asegurese de que exista."<<endl;
-        return c;
-    }
-    archivo.seekg(0, ios::end);
-    streampos tam = archivo.tellg();
+    archivoc.seekg(0, ios::end);
     if(cliente.cantidadRegistros<=0){
         cout<<"No hay clientes registrados en el archivo binario."<<endl;
         return c;
-    }
-    archivo.seekg(0, ios::beg);
+    };
     int x=0;
     
-    while(archivo.read(reinterpret_cast<char*>(&c), sizeof(Cliente))||cliente.cantidadRegistros>x){
+    for(int i=0;i<cliente.cantidadRegistros;i++){
+        c=cargarArchivo<Cliente>(cliente,archivoc,i);
         if(c.cedula == cedula){
             nombre = c.nombre;
             direccion = c.dirreccion;
@@ -47,13 +40,11 @@ using namespace std;
             if(cantidad>0) break;
             cout<<"La cantidad debe ser mayor a 0. Intente nuevamente: ";
         }
-
-            archivoc.clear();
             Cliente* cp=new Cliente[cliente.cantidadRegistros+1];
-            archivoc.seekg(0, ios::beg);
             Cliente c;
             int x=0;
-            while(archivoc.read(reinterpret_cast<char*>(&c), sizeof(Cliente))||cliente.cantidadRegistros>x){
+            for(int i=0;i<cliente.cantidadRegistros;i++){
+                c=cargarArchivo<Cliente>(cliente,archivoc,i);
                 cp[x]=c;
                 x++;
                 archivoc.clear();
@@ -109,7 +100,7 @@ using namespace std;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
             strncpy(temp.fecharegitro, input.c_str(), sizeof(temp.fecharegitro)-1);
             cp[x+1]=temp;
-            archivoc.write(reinterpret_cast<char*>(&temp),sizeof(cliente));
+            guardarArchivo(cliente,archivoc,temp);
             cout<<"Clientes guardados en archivo binario."<<endl;
             cliente.cantidadRegistros=cliente.cantidadRegistros+1;
             cliente.proximoID=cliente.proximoID+1;
@@ -118,18 +109,16 @@ using namespace std;
         
         
     }
-void Editarcliente (archivoHeader& cliente, fstream& archivoc, int cedula){
+void Cliente::Editarcliente (archivoHeader& cliente, fstream& archivoc, int cedula){
     if(cliente.cantidadRegistros <= 0){ cout<<"No hay clientes registrados."<<endl; return; }
         Cliente c;
         if(cliente.cantidadRegistros<=0){ cout<<"No hay clientes registrados en el archivo binario."<<endl; return; }
         int indice=-1,pos;
-        archivoc.clear();
-        archivoc.seekg(0,ios::beg);
-        while(archivoc.read(reinterpret_cast<char*>(&c),sizeof(Cliente))){
+       for(int i=0;i<cliente.cantidadRegistros;i++){
+        c=cargarArchivo<Cliente>(cliente,archivoc,i);
             if(c.cedula==cedula){
-                indice=archivoc.tellg()/sizeof(Cliente)-1;
+                indice=archivoc.tellg()/sizeof(Cliente);
                 cout<<"Cliente encontrado: "<<c.nombre<<" | Cedula: "<<c.cedula<<" | Correo: "<<c.correo<<" | Telefono: "<<c.telefono<<" | Dirreccion: "<<c.dirreccion<<" | Fecha de registro: "<<c.fecharegitro<<" en la posicion: "<<indice+1<<endl;
-                archivoc.clear();
                 pos=archivoc.tellg()/sizeof(Cliente)-1;
                 break;
             }
@@ -184,21 +173,17 @@ void Editarcliente (archivoHeader& cliente, fstream& archivoc, int cedula){
                 default:
                     cout<<"Opción inválida. Edición cancelada."<<endl; return;
             }
-            archivoc.clear();
-            archivoc.seekp(pos*sizeof(Cliente),ios::beg);
-            archivoc.write(reinterpret_cast<char*>(&c),sizeof(Cliente));
-            archivoc.clear();
+            guardarArchivo(cliente,archivoc,c,pos);
             cout<<"Cliente editado y guardado en archivo binario."<<endl;
         }
-    void listarcliente(archivoHeader cliente,fstream* archivoc,int posi){
+    void Cliente::listarcliente(archivoHeader cliente,fstream* archivoc,int posi){
         if(!archivoc){ cout<<"archivo no inicializado."<<endl; return; }
         if(cliente.cantidadRegistros<=0){ cout<<"No hay Clientes registrados."<<endl; return; }
         cout<<"Listado de Clientes:\n";
         Cliente p;
         int x=0;
-        archivoc->clear();
-        archivoc->seekg(0,ios::beg);
-        while(archivoc->read(reinterpret_cast<char*>(&p),sizeof(Cliente))||x<cliente.cantidadRegistros){
+       for(int i=0;i<cliente.cantidadRegistros;i++){
+        p=cargarArchivo<Cliente>(cliente,*archivoc,i);
             cout<<"cedula: "<<p.cedula<<" | Nombre: "<<p.nombre<<" | Telefono: "<<p.telefono<<" | Correo: "<<p.correo<<" | Direccion: "<<p.dirreccion<<" | Fecha de registro: "<<p.fecharegitro<<endl;
             cout<<"X: "<<x<<endl;
             x++;
