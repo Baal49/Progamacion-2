@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include "HEADER.hpp"
+#include "CLIENTES.HPP"
 #include "PROVEEDOR.hpp"
 #include "PRODUCTO.hpp"
 #include "PRODUCTOVENTA.hpp"
@@ -18,13 +19,7 @@ void Transaccion::venta(archivoHeader& producto,archivoHeader transaccion,archiv
     cout<<"Inserte la cedula del cliente";
     cin>>cedu;
     c=c.buscarCliente(cliente,archivoc, cedu, nombre, direccion);
-    archivopt.clear();
-    if(pt.cantidadRegistros>0){
-        archivopt.seekp((transaccion.cantidadRegistros+1)*sizeof(Productoventa),ios::beg);
-    }
-    else{
-        archivopt.seekp((0)*sizeof(Productoventa),ios::beg);
-    }
+    
     if(c.cedula==0){
         cout<<"Cliente no encontrado. Intente de nuevo o Cree otro cliente";
             cout<<"Venta cancelada."<<endl;
@@ -38,7 +33,7 @@ void Transaccion::venta(archivoHeader& producto,archivoHeader transaccion,archiv
             int cant;
             cout<<"introduce el id del producto que se va a llevar: ";
             cin>>id;
-            p=p.buscarProducto(&producto,archivop,id,"",1);
+            p=p.buscarProducto(producto,archivop,id,"",1);
             cout<<"El precio del producto es: "<<p.precio<<endl;
             venta.idprod=p.id;
             venta.preciounidad=p.precio;
@@ -54,9 +49,7 @@ void Transaccion::venta(archivoHeader& producto,archivoHeader transaccion,archiv
         venta.idt=transaccion.proximoID++;
         sub+=(cant*p.precio);
         string input;
-        archivopt.write(reinterpret_cast<char*>(&venta),sizeof(Productoventa));
-        archivopt.flush();
-        archivopt.clear();
+        guardarArchivo(pt,archivopt,venta);
         p.modificarstock(producto,archivop,p.id,cant,1);
         pt.cantidadRegistros++;
         pt.proximoID++;
@@ -93,15 +86,7 @@ void Transaccion::venta(archivoHeader& producto,archivoHeader transaccion,archiv
             string input3;
             strncpy(t.descripcion,input3.c_str(),sizeof(t.descripcion));
         }
-        archivot.clear();
-        if(transaccion.cantidadRegistros<=0){
-            archivot.seekp((transaccion.cantidadRegistros+1)*sizeof(transaccion),ios::beg);
-        }
-        else{
-            archivot.seekp(1*sizeof(transaccion),ios::beg);
-        }
-        archivot.write(reinterpret_cast<char*>(&t),sizeof(transaccion));
-        archivot.clear();
+        guardarArchivo(transaccion,archivot,t);
     }
 };
 void Transaccion::compra(archivoHeader producto, archivoHeader proveedor,archivoHeader cliente,archivoHeader& transaccion,archivoHeader& pt,fstream& archivop,fstream& archivoprov,fstream& archivoc,fstream& archivot,fstream& archivopt){
@@ -132,18 +117,11 @@ void Transaccion::compra(archivoHeader producto, archivoHeader proveedor,archivo
         bool cantver=0;
         int x=0;
         t.idcp=prov->id;
-        archivopt.clear();
-        if(pt.cantidadRegistros>0){
-            archivopt.seekp((pt.cantidadRegistros+1)*sizeof(Productoventa),ios::beg);
-        }
-        else{
-            archivopt.seekp((1)*sizeof(Productoventa),ios::beg);
-        }
         do{
             int cant;
             cout<<"introduce el id del producto que se va a comprar: ";
             cin>>id;
-            p=p.buscarProducto(&producto,archivop,id,"",1);
+            p=p.buscarProducto(producto,archivop,id,"",1);
             //if(p->precio>0){
             venta.idprod=p.id;
             cout<<"El precio del producto es: "<<p.precio<<endl;
@@ -160,9 +138,7 @@ void Transaccion::compra(archivoHeader producto, archivoHeader proveedor,archivo
         sub+=(cant*p.precio);
         string input;
         venta.idt=transaccion.proximoID++;
-        archivopt.write(reinterpret_cast<char*>(&venta),sizeof(Productoventa));
-        archivopt.flush();
-        archivopt.clear();
+        guardarArchivo(pt,archivopt,venta);
         p.modificarstock(producto,archivop,p.id,cant,2);
         pt.cantidadRegistros++;
         pt.proximoID++;
@@ -199,18 +175,7 @@ void Transaccion::compra(archivoHeader producto, archivoHeader proveedor,archivo
             getline(cin,input3);
             strncpy(t.descripcion,input3.c_str(),sizeof(t.descripcion));
         }
-        archivot.clear();
-        if(transaccion.cantidadRegistros>0){
-            archivot.seekp((transaccion.cantidadRegistros+1)*sizeof(transaccion),ios::beg);
-           cout<<">0"<<endl; 
-        }
-        else{
-            archivot.seekp((0)*sizeof(transaccion),ios::beg);
-            cout<<"=0"<<endl;
-        }
-        archivot.write(reinterpret_cast<char*>(&t),sizeof(transaccion));
-        archivot.flush();
-        archivot.clear();
+        guardarArchivo(transaccion,archivot,t);
         cout<<"Transaccion aceptada Id de la transaccion es: "<<t.idt<<endl;
         transaccion.cantidadRegistros++;
         transaccion.proximoID++;
@@ -229,7 +194,8 @@ void Transaccion::buscarTransaccionesPorProducto(archivoHeader& transaccion,fstr
     Transaccion t;
     int encontrados = 0;
     cout<<"Transacciones que tienen de referencia la ID "<<idProducto<<":\n"; // mouestra solo transacciones relacionadas con el producto que introdujo el usuario
-    while(archivot.read(reinterpret_cast<char*>(&t), sizeof(Transaccion))){
+    for(int i=0;i<transaccion.cantidadRegistros;i++){
+        t=cargarArchivo<Transaccion>(transaccion,archivot,i);
         if(t.idcp == idProducto ){
             encontrados++;
             cout<<"ID: "<<t.idt<<" | Tipo: "<<t.tipo
@@ -245,35 +211,24 @@ void Transaccion::buscarTransaccionesPorProducto(archivoHeader& transaccion,fstr
 }
  void Transaccion::Buscartransaccion (archivoHeader&transaccion,archivoHeader pt,fstream& archivot,fstream& archivopt,int id){
         if(!archivot.is_open()){ cout<<"Tienda no inicializada."<<endl; return; }
-        /*if(transaccion.cantidadRegistros<=0){
-            cout<<"No hay transacciones registradas en el archivo binario."<<endl;
-            return;
-        }*/
-        archivot.clear();
-        archivot.seekg(0, ios::beg);
-        archivot.seekp(0,ios::beg);
-        archivopt.clear();
-        archivopt.seekg(0,ios::beg);
-        archivopt.seekp(0,ios::beg);
         Transaccion t;
         Productoventa p;
         int x=0;
         bool encontrado = false;
-        while(archivot.read(reinterpret_cast<char*>(&t), sizeof(Transaccion))||transaccion.cantidadRegistros>x){
+        for(int i=0;i<transaccion.cantidadRegistros;i++){
+            t=cargarArchivo<Transaccion>(transaccion,archivot,i);
             cout<<"Transacción : ID: "<<t.idt<<" | Tipo: "<<t.tipo<<" | Fecha: "<<t.fecha<<" | Descripcion: "<<t.descripcion<<"\n";
             if(t.idt == id){
                 cout<<"Transacción encontrada: ID: "<<t.idt<<" | Tipo: "<<t.tipo<<" | Fecha: "<<t.fecha<<" | Descripcion: "<<t.descripcion<<"\n";
                 encontrado = true;
-                while(archivopt.read(reinterpret_cast<char*>(&p),sizeof(Productoventa))){
+                for(int i=0;i<pt.cantidadRegistros;i++){
+                    p=cargarArchivo<Productoventa>(pt,archivopt,i);
                     if(t.idt==p.idt){
                         cout<<"id producto: "<<p.idprod<<" precio unitario:"<<p.preciounidad<<" cantidad: "<<p.cantidad<<endl;
                     }
-                    archivot.clear();
                 }
-                archivot.clear();
                 return;
             }
-            archivot.clear();
             x++;
         }
         if(!encontrado){
@@ -287,22 +242,19 @@ void Transaccion::listartransaccion(archivoHeader transaccion,archivoHeader pt,f
         Transaccion p;
         Productoventa ptt;
         int x=0;
-        archivopt.clear();
-        archivot.clear();
-        archivot.seekg(0,ios::beg);
-        archivopt.seekg(0,ios::beg);
-        while(archivot.read(reinterpret_cast<char*>(&p),sizeof(Proveedor))||x<transaccion.cantidadRegistros){
+        for(int i=0;i<transaccion.cantidadRegistros;i++){
+            p=cargarArchivo<Transaccion>(transaccion,archivot,i);
             cout<<"id: "<<p.idt<<" | Tipo de Transaccion: "<<p.tipo<<" | Sub Total: "<<p.total<<" | Fecha de registro: "<<p.fecha<<endl;
             int y=0;
             cout<<"Productos de la venta con id: "<<p.idt<<endl;
-            while(archivopt.read(reinterpret_cast<char*>(&ptt),sizeof(Productoventa))||pt.cantidadRegistros>y){
-                cout<<"id: "<<ptt.idprod<<" | Precio de la unidad: "<<ptt.preciounidad<<" | Cantidad: "<<ptt.cantidad<<endl;
+            for(int j=0;j<pt.cantidadRegistros;j++){
+                ptt=cargarArchivo<Productoventa>(pt,archivopt,j);
+                if(ptt.idt==p.idt){
+                    cout<<"id: "<<ptt.idprod<<" | Precio de la unidad: "<<ptt.preciounidad<<" | Cantidad: "<<ptt.cantidad<<endl;
+                }
                 y++;
-                archivopt.clear();
             }
             cout<<"X: "<<x<<endl;
             x++;
         }
-        archivot.clear();
-
 }
