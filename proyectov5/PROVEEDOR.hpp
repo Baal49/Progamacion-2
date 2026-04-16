@@ -10,12 +10,12 @@ using namespace std;
     bool activo=1;
     // otros campos omitidos para brevedad
     void Crearproveedor(archivoHeader& proveedor, fstream* archivo,int posi);
-void listarProveedores(archivoHeader proveedor,fstream* archivoprov,int posi);
+    void listarProveedores(archivoHeader proveedor,fstream* archivoprov,int posi);
 
-void eliminarProveedor(archivoHeader proveedores,fstream& archivop,int id);
+    void eliminarProveedor(archivoHeader proveedores,fstream& archivop,int id);
 
-void editarProveedor(archivoHeader proveedor,fstream &archivop, int idProveedor);
+    void editarProveedor(archivoHeader proveedor,fstream &archivop, int idProveedor);
 
-Proveedor* buscarProveedor(archivoHeader proveedor,fstream* archivo,int id,string nombre,int opcion);
-};
-#endif // PROVEEDOR_HPP
+    Proveedor* buscarProveedor(archivoHeader proveedor,fstream* archivo,int id,string nombre,int opcion);
+    };
+    #endif // PROVEEDOR_HPP
