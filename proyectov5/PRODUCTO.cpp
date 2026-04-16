@@ -132,7 +132,7 @@ using namespace std;
                 //redimensionarProductos(tienda);
                 cout<<"Arreglo de productos redimensionado a capacidad "<<tienda->capacidadProductos<<"."<<endl;
             }*/
-            if(tienda.cantidadRegistros>0){
+            /*if(tienda.cantidadRegistros>0){
                 archivoproducto.clear();
                 archivoproducto.seekp((tienda.cantidadRegistros+posiprod+1)*sizeof(Producto),ios::beg);
                 cout<<"entro aqui >0"<<endl;
@@ -152,7 +152,8 @@ using namespace std;
             tienda.proximoID++;
             tienda.registrosActivos++;
             archivoproducto.clear();
-            archivoproveedor.clear();
+            archivoproveedor.clear();*/
+            guardarArchivo(tienda,archivoproducto,temp);
             cout<<"Producto guardado."<<endl;
         } else {
             cout<<"Producto descartado por el usuario."<<endl;
@@ -161,7 +162,7 @@ using namespace std;
     }
     
 }
-Producto Producto::buscarProducto(archivoHeader* productosheader,fstream& archivo,int id,string nombre, int opcion){
+Producto Producto::buscarProducto(archivoHeader& productosheader,fstream& archivo,int id,string nombre, int opcion){
     // Implementar búsqueda por ID, nombre, código o proveedor
     // Similar a buscarTransaccionesPorProducto pero con criterios diferentes
     Producto p;
@@ -172,8 +173,8 @@ Producto Producto::buscarProducto(archivoHeader* productosheader,fstream& archiv
     catch(...){ cout<<"ID invalido."<<endl;  }
     archivo.clear();
     archivo.seekg(0,ios::beg);
-    for(int i=0;i<productosheader->cantidadRegistros+1;i++){
-        archivo.read(reinterpret_cast<char*>(&p),sizeof(p));
+    for(int i=0;i<productosheader.cantidadRegistros+1;i++){
+        p=cargarArchivo<Producto>(productosheader,archivo,i);
         if(p.id == id){
             posicion=i;
             cout<<"Producto encontrado: ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<"\n";
@@ -198,9 +199,10 @@ Producto Producto::buscarProducto(archivoHeader* productosheader,fstream& archiv
         string nombre;
         cout<<"introduce el nombre del producto: ";
         getline(cin,nombre);
-        int* idencontrados=new int[productosheader->cantidadRegistros];
+        int* idencontrados=new int[productosheader.cantidadRegistros];
         int x=0;
-        while(archivo.read(reinterpret_cast<char*>(&p),sizeof(p))){
+        for(int i=0;i<productosheader.cantidadRegistros;i++){
+            p=cargarArchivo<Producto>(productosheader,archivo,i);
             string str(p.nombre);
             if(str.find(nombre)){
                 idencontrados[x]=p.id;
@@ -212,7 +214,7 @@ Producto Producto::buscarProducto(archivoHeader* productosheader,fstream& archiv
         }
         else{
             int opcion2;
-            Producto* p2= new Producto[productosheader->cantidadRegistros];
+            Producto* p2= new Producto[productosheader.cantidadRegistros];
             cout<<"se encontraron "<<x<<" coincidencias :"<<endl;
             for(int i=0;i<x;i++){
                 while(archivo.read(reinterpret_cast<char*>(&p),sizeof(p))){
@@ -235,8 +237,12 @@ Producto Producto::buscarProducto(archivoHeader* productosheader,fstream& archiv
 };
 bool Producto::codigoDuplicado(archivoHeader* tienda,fstream* archivo ,const string& codigo){
     Producto p;
-    while(archivo->read(reinterpret_cast<char*>(&p),sizeof(p))){
+    for(int i=0;i<tienda->cantidadRegistros;i++){
+        p=cargarArchivo<Producto>(*tienda,*archivo,i);
         if(strncmp(p.codigo, codigo.c_str(), sizeof(p.codigo))==0) return true;
+    }
+    while(archivo->read(reinterpret_cast<char*>(&p),sizeof(p))){
+        
     }
     return false;
 }
@@ -256,16 +262,11 @@ void Producto::listarProductos(fstream* archivop,fstream* archivosprov, archivoH
         cout<<"╠════╦═══════════╦══════════════════╦══════════════╦═══════╦════════╦══════╣\n";
         cout<<"║ ID ║  Código   ║     Nombre       ║  Proveedor   ║ Precio║ Stock  ║ Fecha║\n";
         cout<<"╠════╬═══════════╬══════════════════╬══════════════╬═══════╬════════╬══════╣\n";
-        archivop->clear();
-        archivosprov->clear();
-        archivop->seekg(0,ios::beg);
-        archivosprov->seekg(0,ios::beg);
-        
         for(int i=0;i<productos.cantidadRegistros;i++){
-            archivop->read(reinterpret_cast<char*>(&p),sizeof(Producto));
+            p=cargarArchivo<Producto>(productos,*archivop,i);
             const char* provName = "N/A";
             for(int j=0;j<provedor.cantidadRegistros;j++){
-                archivosprov->read(reinterpret_cast<char*>(&prov),sizeof(Proveedor));
+                prov=cargarArchivo<Proveedor>(provedor,*archivosprov,j);
                 if(prov.id == p.idProveedor){
                     provName = prov.nombre;
                     break;
@@ -306,7 +307,9 @@ void Producto::eliminarProducto(archivoHeader &productos,fstream& archivop,int i
     int pos;
     bool encontrado = false;
     archivop.seekp(0,ios::beg);
-    while(archivop.read(reinterpret_cast<char*>(&p), sizeof(Producto))){
+    
+    for(int i=0;i<productos.cantidadRegistros;i++){
+        p=cargarArchivo<Producto>(productos,archivop,i);
         if(p.id == id){
             encontrado = true;
             p.registroactivo=0;
@@ -314,12 +317,8 @@ void Producto::eliminarProducto(archivoHeader &productos,fstream& archivop,int i
             archivop.clear();
             break;
         }
-        archivop.clear();
     }
-    archivop.clear();
-    archivop.seekp(pos*sizeof(Producto),ios::beg);
-    archivop.write(reinterpret_cast<char*>(&p),sizeof(Producto));
-    archivop.clear();
+    guardarArchivo(productos,archivop,p,pos);
     productos.registrosActivos--;
     cout<<"Producto con ID "<<id<<" eliminado correctamente."<<endl;
     if(productos.cantidadRegistros>0){
@@ -334,14 +333,13 @@ void Producto::modificarstock(archivoHeader productos,fstream& archivop,int id,i
     Producto p;
     int pos;
     bool encontrado = false;
-    archivop.seekp(0,ios::beg);
-    while(archivop.read(reinterpret_cast<char*>(&p), sizeof(Producto))){
+    for(int i=0;i<productos.cantidadRegistros;i++){
+        p=cargarArchivo<Producto>(productos,archivop,i);
         if(p.id == id&&opt==1){
             encontrado = true;
             p.stock=p.stock-cant;
             pos=archivop.tellg()/sizeof(Producto)-1;
             archivop.clear();
-
         }
         if(p.id == id&&opt==2){
             encontrado = true;
@@ -355,13 +353,10 @@ void Producto::modificarstock(archivoHeader productos,fstream& archivop,int id,i
         cout<<"No se encontró el producto con ID "<<id<<". Ningún cambio aplicado."<<endl;
         return;
     }
-    archivop.clear();
-    archivop.seekp(pos*sizeof(Producto),ios::beg);
-    archivop.write(reinterpret_cast<char*>(&p),sizeof(Producto));
-    archivop.clear();
+    guardarArchivo(productos,archivop,p,pos);
     cout<<"Producto con ID "<<id<<" modificado correctamente."<<endl;
 }
-void Producto::editarProducto(archivoHeader &producto,fstream &archivo,fstream* archivoprov, int idProducto){
+void Producto::editarProducto(archivoHeader &producto,archivoHeader &proveedor,fstream &archivo,fstream* archivoprov, int idProducto){
     //Funcion para editar algun aspecto del producto
     
     int idBuscado=0;
@@ -373,9 +368,8 @@ void Producto::editarProducto(archivoHeader &producto,fstream &archivo,fstream* 
     cout<<"id producto: "<<idProducto;
     int i=0;
     string respp;
-    archivo.clear();
-    archivo.seekg(0,ios::beg);
-    while(archivo.read(reinterpret_cast<char*>(&p),sizeof(Producto))){
+    for(int i=0;i<producto.cantidadRegistros;i++){
+        p=cargarArchivo<Producto>(producto,archivo,i);
         if(p.id==idProducto){
             idBuscado=i;
             pos=archivo.tellg()/sizeof(Producto);
@@ -445,11 +439,11 @@ void Producto::editarProducto(archivoHeader &producto,fstream &archivo,fstream* 
                 break;
             case 4:
                 // Editar proveedor (validar existencia)
+                    while(provvaalido==0){
                     cout<<"Ingrese el nuevo ID del proveedor del producto: ";
                     cin>>resp;
-                    
-                    while(provvaalido==0){
-                    while(archivoprov->read(reinterpret_cast<char*>(&prov),sizeof(Proveedor))){
+                    for(int i=0;i<proveedor.cantidadRegistros;i++){
+                        prov=cargarArchivo<Proveedor>(proveedor,*archivoprov,i);
                         if(prov.id==resp){
                             provvaalido=1;
                             break;
@@ -521,11 +515,7 @@ void Producto::editarProducto(archivoHeader &producto,fstream &archivo,fstream* 
                 cout<<"Producto antes: ID: "<<p.id<<" | Codigo: "<<p.codigo<<" | Nombre: "<<p.nombre<<" | Precio: "<<p.precio<<" | Stock: "<<p.stock<<" | Proveedor ID: "<<p.idProveedor<<" | Fecha de Registro: "<<p.fechaRegistro<<" | Fecha de Vencimiento: "<<p.fechavencimiento<<endl;
                 cout<<"Producto Despues: ID: "<<temp.id<<" | Codigo: "<<temp.codigo<<" | Nombre: "<<temp.nombre<<" | Precio: "<<temp.precio<<" | Stock: "<<temp.stock<<" | Proveedor ID: "<<temp.idProveedor<<" | Fecha de Registro: "<<temp.fechaRegistro<<" | Fecha de Vencimiento: "<<temp.fechavencimiento<<endl;
                 cout<<"¿Desea guardar los cambios realizados al producto? (S/N): ";
-                //tienda->productos[idBuscado]=temp;
-                archivo.clear();
-                archivo.seekp((pos-1)*sizeof(Producto),ios::beg);
-                archivo.write(reinterpret_cast<char*>(&temp),sizeof(Producto));
-                archivo.clear();
+                guardarArchivo(producto,archivo,temp,pos);
                 cout<<"Cambios guardados."<<endl;
                 break;
             case 0:

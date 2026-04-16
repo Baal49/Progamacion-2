@@ -5,6 +5,7 @@
 #include "PROVEEDOR.hpp"
 #include "PRODUCTO.hpp"
 #include "PRODUCTOVENTA.hpp"
+#include "ARCHIVO.hpp"
 class Transaccion {
     public:
     int idt=0;

@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include "ARCHIVO.hpp"
 #include "HEADER.hpp"
 #include "PROVEEDOR.hpp"
   class Producto {
@@ -18,11 +19,11 @@
     char fechavencimiento[11]; //Formato: YYYY-MM-DD (opcional)
     bool registroactivo;
     void Crearproductos(archivoHeader* proveedores,fstream& archivoproducto,archivoHeader& tienda,fstream& archivoproveedor,int posiprod,int posiprov);
-    Producto buscarProducto(archivoHeader* productosheader,fstream& archivo,int id,string nombre, int opcion);
+    Producto buscarProducto(archivoHeader& productosheader,fstream& archivo,int id,string nombre, int opcion);
 bool codigoDuplicado(archivoHeader* tienda,fstream* archivo ,const string& codigo);
 void listarProductos(fstream* archivop,fstream* archivosprov, archivoHeader productos, archivoHeader provedor,int posiprod,int posiprov);
 void eliminarProducto(archivoHeader &productos,fstream& archivop,int id);
 void modificarstock(archivoHeader productos,fstream& archivop,int id,int cant,int opt);
-void editarProducto(archivoHeader &producto,fstream &archivo,fstream* archivoprov, int idProducto);
+void editarProducto(archivoHeader &producto,archivoHeader &proveedor,fstream &archivo,fstream* archivoprov, int idProducto);
 };
 #endif // PRODUCTO_HPP

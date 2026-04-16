@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
+#include "ARCHIVO.hpp"
 #include "PROVEEDOR.hpp"
 #include "HEADER.hpp"
 #include "PRODUCTO.hpp"
