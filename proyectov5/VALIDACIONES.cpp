@@ -48,7 +48,7 @@ bool esMayorQueCero(T n) {
 }
 
 // Función para validar cédula (combina checks)
-bool validarCedula(const std::string& input, int& cedulaNueva, const std::vector<Cliente>& listaClientes) {
+bool validarCedula(const std::string& input, int& cedulaNueva,archivoHeader& cliente,fstream& archivoclientes) {
     if (esVacio(input)) {
         std::cout << "La cédula no puede estar vacía." << std::endl;
         return false;
@@ -58,8 +58,9 @@ bool validarCedula(const std::string& input, int& cedulaNueva, const std::vector
         return false;
     }
     cedulaNueva = std::stoi(input);
-    for (const auto& c : listaClientes) {
-        if (c.cedula == cedulaNueva) {
+    for (int i=0;i<cliente.cantidadRegistros;i++) {
+        Cliente c=cargarArchivo<Cliente>(cliente,archivoclientes,i);
+        if (c.getcedula() == cedulaNueva) {
             std::cout << "La cédula ya existe. Ingrese otra." << std::endl;
             return false;
         }
@@ -86,7 +87,17 @@ bool validarNombre(const std::string& input) {
     }
     return true;
 }
-
+template<typename templatecito ,typename atributotemplatecito, typename x>
+bool existe(atributotemplatecito templatecito::*atributo,archivoHeader& header,fstream& archivo,x valor){
+    templatecito temp;
+    for(int i=0;i<header.cantidadRegistros;i++){
+        temp=cargarArchivo<templatecito>(header,archivo,i);
+        if(temp.*atributo==valor){
+            return true;
+        }
+    }
+    return false;
+}
 // Función para validar stock (cantidad <= stock)
 bool validarStock(int cantidad, int stock) {
     if (cantidad > stock) {
