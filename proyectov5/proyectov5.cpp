@@ -1,3 +1,5 @@
+
+#include <windows.h>
 #include <iostream>
 #include <locale>
 #include <limits>
@@ -41,6 +43,8 @@ class Tienda {
 }*/
 // Busca transacciones por ID de producto usando fichero binario
 int main(){
+    SetConsoleOutputCP(CP_UTF8); 
+    SetConsoleCP(CP_UTF8);
     Tienda tienda;
     bool existp,existprov,existc,existt,existpt;
     archivoHeader productos,proveedores,clientes,transacciones,pt;
@@ -167,11 +171,11 @@ int main(){
     }
     int opcion;
     do{
-        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+        cin.ignore((numeric_limits<streamsize>::max)(), '\n');
         int opt=0,id;
         string nombre,direccion,str;
-         char* rutaproductos="C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/productos.bin";
-         char* rutaproveedores="C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin";
+        const char* rutaproductos="C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/productos.bin";
+        const char* rutaproveedores="C:/Users/reina/Desktop/proyecto2/Progamacion-2/Proyectos/proyectov4/proveedores.bin";
         cout <<"╔═══════════════════════════════════════════╗"<<endl;
         cout <<"║   SISTEMA DE GESTIÓN DE INVENTARIO        ║"<<endl;
         cout <<"║   Tienda: Farmacia pipo                   ║"<<endl;
@@ -219,19 +223,19 @@ int main(){
                             cout<<"ingrese el nombre: ";
                             getline(cin,nombre);
                         }
-                        p.buscarProducto(&productos,archivoproductos,id,nombre,opt);
+                        p.buscarProducto(productos,archivoproductos,id,nombre,opt);
                         break;
                     case 3:
                         cout<<"ingrese el id del producto: ";
                         cin>>id;
-                        p.editarProducto(productos,archivoproductos,&archivoproveedores,id);
+                        p.editarProducto(productos,proveedores,archivoproductos,&archivoproveedores,id);
                         break;
                     case 4:
                         p.modificarstock(productos,archivoproductos,1,1,1);
                         break;
                     case 5:
                         p.listarProductos(&archivoproductos,&archivoproveedores,productos,proveedores,posiprod,posiprov);
-                        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+                        cin.ignore((numeric_limits<streamsize>::max)(), '\n');
                         opt=0;
                         opcion=0;
                         break;
@@ -267,7 +271,7 @@ int main(){
                         cout<<"cantidad de registros"<<proveedores.cantidadRegistros<<endl;
                         break;
                     case 2:
-                        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+                        cin.ignore((numeric_limits<streamsize>::max)(), '\n');
                         opcion=0;
                         while(opcion!=1&&opcion!=2){
                             cout<<"Quiere hacer la busqueda del proveedor por 1.ID o por 2.Nombre";
@@ -298,7 +302,7 @@ int main(){
                         cout<<"ingrese el id del del producto que se quiere borrar";
                         cin>>id;
                         prov.eliminarProveedor(proveedores,archivoproveedores, id); 
-                        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+                        cin.ignore((numeric_limits<streamsize>::max)(), '\n');
                         opt=0;
                         opcion=0;
                         break;
@@ -390,7 +394,7 @@ int main(){
                         t.listartransaccion(transacciones,pt,archivotransacciones,archivopt,posit);
                         break;
                     case 5:
-                    cin.ignore(numeric_limits<streamsize>::max(),'\n');
+                    cin.ignore((numeric_limits<streamsize>::max)(), '\n');
                         //eliminarCliente(&tienda, 1); 
                         opcion=0;
                         break;

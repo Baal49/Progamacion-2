@@ -4,6 +4,8 @@
 #include <string>
 #include <fstream>
 #include "HEADER.hpp"
+#include <limits>
+#include <cstring>
 using namespace std;
     class Proveedor {
     public:

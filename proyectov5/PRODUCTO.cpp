@@ -233,8 +233,8 @@ Producto Producto::buscarProducto(archivoHeader& productosheader,fstream& archiv
     }
 }
 
-//return tienda->productos[posicion];
-};
+return p;
+}
 bool Producto::codigoDuplicado(archivoHeader* tienda,fstream* archivo ,const string& codigo){
     Producto p;
     for(int i=0;i<tienda->cantidadRegistros;i++){

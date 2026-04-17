@@ -6,6 +6,7 @@
 #include "ARCHIVO.hpp"
 #include "HEADER.hpp"
 #include "PROVEEDOR.hpp"
+#include <limits>
   class Producto {
     public:
     int id=0;                    // Identificador único (autoincremental)
