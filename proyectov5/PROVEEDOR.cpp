@@ -1,8 +1,14 @@
 #include "PROVEEDOR.hpp"
 #include <iostream>
-
-
-    // otros campos omitidos para brevedad
+    int Proveedor::getid(){
+        return id;
+    }
+    const char* Proveedor::getnombre(){
+        return nombre;
+    }
+    bool Proveedor::getact(){
+        return activo;
+    }
     void Proveedor::Crearproveedor(archivoHeader& proveedor, fstream* archivo,int posi){
     cin.ignore(numeric_limits<streamsize>::max(),'\n');
     if(!archivo){ cout<<"El archivo no se a podido abrir"<<endl; return; }

@@ -8,7 +8,7 @@
 #include "PROVEEDOR.hpp"
 #include <limits>
   class Producto {
-    public:
+    private:
     int id=0;                    // Identificador único (autoincremental)
     char codigo[20];           // Código del producto (ej: "PROD-001")
     char nombre[100];          // Nombre del producto
@@ -19,6 +19,17 @@
     char fechaRegistro[11];    // Formato: YYYY-MM-DD
     char fechavencimiento[11]; //Formato: YYYY-MM-DD (opcional)
     bool registroactivo;
+    public:
+    int getidp();
+    const char* getcodigo();
+    const char* getnombre();
+    const char* getdeescripcion();
+    int getidProveedor();
+    float getprecio();
+    int getstock();
+    const char* getfechaRegistro();
+    const char* getfechavencimiento();
+    bool getregistroactivo();
     void Crearproductos(archivoHeader* proveedores,fstream& archivoproducto,archivoHeader& tienda,fstream& archivoproveedor,int posiprod,int posiprov);
     Producto buscarProducto(archivoHeader& productosheader,fstream& archivo,int id,string nombre, int opcion);
 bool codigoDuplicado(archivoHeader* tienda,fstream* archivo ,const string& codigo);

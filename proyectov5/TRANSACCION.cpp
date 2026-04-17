@@ -34,23 +34,23 @@ void Transaccion::venta(archivoHeader& producto,archivoHeader transaccion,archiv
             cout<<"introduce el id del producto que se va a llevar: ";
             cin>>id;
             p=p.buscarProducto(producto,archivop,id,"",1);
-            cout<<"El precio del producto es: "<<p.precio<<endl;
-            venta.idprod=p.id;
-            venta.preciounidad=p.precio;
+            cout<<"El precio del producto es: "<<p.getprecio()<<endl;
+            venta.idprod=p.getidp();
+            venta.preciounidad=p.getprecio();
             do{
             cout<<"introduce la cantidad del producto que se va a llevar: ";
             cin>>cant;
-            if(cant>p.stock){
-                cout<<"el producto no tiene esa cantidad intentelo de nuevo La existencia del producto es: "<<p.stock;
+            if(cant>p.getstock()){
+                cout<<"el producto no tiene esa cantidad intentelo de nuevo La existencia del producto es: "<<p.getstock();
                 cantver=1;
             }
         }while(cantver==1);
         venta.cantidad=cant;
         venta.idt=transaccion.proximoID++;
-        sub+=(cant*p.precio);
+        sub+=(cant*p.getprecio());
         string input;
         guardarArchivo(pt,archivopt,venta);
-        p.modificarstock(producto,archivop,p.id,cant,1);
+        p.modificarstock(producto,archivop,p.getidp(),cant,1);
         pt.cantidadRegistros++;
         pt.proximoID++;
         do{
@@ -116,16 +116,16 @@ void Transaccion::compra(archivoHeader producto, archivoHeader proveedor,archivo
         int opt,id,sub,cantp=1;
         bool cantver=0;
         int x=0;
-        t.idcp=prov->id;
+        t.idcp=prov->getid();
         do{
             int cant;
             cout<<"introduce el id del producto que se va a comprar: ";
             cin>>id;
             p=p.buscarProducto(producto,archivop,id,"",1);
             //if(p->precio>0){
-            venta.idprod=p.id;
-            cout<<"El precio del producto es: "<<p.precio<<endl;
-            venta.preciounidad=p.precio;
+            venta.idprod=p.getidp();
+            cout<<"El precio del producto es: "<<p.getprecio()<<endl;
+            venta.preciounidad=p.getprecio();
             do{
             cout<<"introduce la cantidad del producto que se va a comprar: ";
             cin>>cant;
@@ -135,11 +135,11 @@ void Transaccion::compra(archivoHeader producto, archivoHeader proveedor,archivo
             }
         }while(cantver==1);
         venta.cantidad=cant;
-        sub+=(cant*p.precio);
+        sub+=(cant*p.getprecio());
         string input;
         venta.idt=transaccion.proximoID++;
         guardarArchivo(pt,archivopt,venta);
-        p.modificarstock(producto,archivop,p.id,cant,2);
+        p.modificarstock(producto,archivop,p.getidp(),cant,2);
         pt.cantidadRegistros++;
         pt.proximoID++;
         do{

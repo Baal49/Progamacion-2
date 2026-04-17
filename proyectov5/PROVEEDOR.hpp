@@ -8,11 +8,14 @@
 #include <cstring>
 using namespace std;
     class Proveedor {
-    public:
+    private:
     int id=0;
     char nombre[100];
     bool activo=1;
-    // otros campos omitidos para brevedad
+    public:
+    int getid();
+    const char* getnombre();
+    bool getact();
     void Crearproveedor(archivoHeader& proveedor, fstream* archivo,int posi);
     void listarProveedores(archivoHeader proveedor,fstream* archivoprov,int posi);
 

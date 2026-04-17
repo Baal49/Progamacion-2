@@ -7,6 +7,36 @@
 #include <cstring>
 #include <iomanip>
 using namespace std;
+    int Producto::getidp(){
+        return id;
+    }
+    const char* Producto::getcodigo(){
+        return codigo;
+    }
+    const char* Producto::getnombre(){
+        return nombre;
+    }
+    const char* Producto::getdeescripcion(){
+        return descripcion;
+    }
+    int Producto::getidProveedor(){
+        return idProveedor;
+    }
+    float Producto::getprecio(){
+        return precio;
+    }
+    int Producto::getstock(){
+        return stock;
+    }
+    const char* Producto::getfechaRegistro(){
+        return fechaRegistro;
+    }
+    const char* Producto::getfechavencimiento(){
+        return fechavencimiento;
+    }
+    bool Producto::getregistroactivo(){
+        return registroactivo;
+    }
 
     void Producto::Crearproductos(archivoHeader* proveedores,fstream& archivoproducto,archivoHeader& tienda,fstream& archivoproveedor,int posiprod,int posiprov){
     string input;
@@ -63,8 +93,8 @@ using namespace std;
                 Proveedor p;
                 int x=0;
                 while(archivoproveedor.read(reinterpret_cast<char*>(&p),sizeof(Proveedor))){
-                    cout<<"id del proveedor: "<<p.id<<" nombre del proveedor: "<<p.nombre<<endl;
-                    if(p.id==idProv){
+                    cout<<"id del proveedor: "<<p.getid()<<" nombre del proveedor: "<<p.getnombre()<<endl;
+                    if(p.getid()==idProv){
                         proveedorValido=true;
                         archivoproveedor.clear();
                         break;
@@ -127,32 +157,6 @@ using namespace std;
         string resp;
         if(!getline(cin,resp)) return;
         if(resp=="S" || resp=="s" || resp=="Si" || resp=="SI" || resp=="si"){
-            // si el arreglo está lleno, redimensionar duplicando capacidad
-           /*if(tienda->cantidadRegistros >= tienda->capacidadProductos){
-                //redimensionarProductos(tienda);
-                cout<<"Arreglo de productos redimensionado a capacidad "<<tienda->capacidadProductos<<"."<<endl;
-            }*/
-            /*if(tienda.cantidadRegistros>0){
-                archivoproducto.clear();
-                archivoproducto.seekp((tienda.cantidadRegistros+posiprod+1)*sizeof(Producto),ios::beg);
-                cout<<"entro aqui >0"<<endl;
-            }
-            else{
-                archivoproducto.clear();
-                archivoproveedor.clear();
-                archivoproducto.seekp((0)*sizeof(Producto),ios::beg);
-                cout<<"entro aqui 0"<<endl;
-            }
-            archivoproducto.write(reinterpret_cast<char*>(&temp),sizeof(Producto)) ;
-            archivoproducto.flush();
-            if(archivoproducto.fail()){
-                cout<<"No se pudo escribir"<<endl;
-            }
-            tienda.cantidadRegistros++;
-            tienda.proximoID++;
-            tienda.registrosActivos++;
-            archivoproducto.clear();
-            archivoproveedor.clear();*/
             guardarArchivo(tienda,archivoproducto,temp);
             cout<<"Producto guardado."<<endl;
         } else {
@@ -267,8 +271,8 @@ void Producto::listarProductos(fstream* archivop,fstream* archivosprov, archivoH
             const char* provName = "N/A";
             for(int j=0;j<provedor.cantidadRegistros;j++){
                 prov=cargarArchivo<Proveedor>(provedor,*archivosprov,j);
-                if(prov.id == p.idProveedor){
-                    provName = prov.nombre;
+                if(prov.getid() == p.idProveedor){
+                    provName = prov.getnombre();
                     break;
                     tieneProductos=true;
                 }
@@ -444,7 +448,7 @@ void Producto::editarProducto(archivoHeader &producto,archivoHeader &proveedor,f
                     cin>>resp;
                     for(int i=0;i<proveedor.cantidadRegistros;i++){
                         prov=cargarArchivo<Proveedor>(proveedor,*archivoprov,i);
-                        if(prov.id==resp){
+                        if(prov.getid()==resp){
                             provvaalido=1;
                             break;
                         }
