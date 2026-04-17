@@ -1,5 +1,6 @@
 #include "PROVEEDOR.hpp"
 #include <iostream>
+#include "VALIDACIONES.hpp"
     int Proveedor::getid(){
         return id;
     }
@@ -27,16 +28,14 @@
         Proveedor temp;
 
         // Codigo (único)
-        while(true){
+        do{
             cout<<"Ingrese el Id del proveedor (o 'CANCELAR' para cancelar): ";
             if(!getline(cin, input)) return;
             if(input=="CANCELAR" || input=="0"){ cout<<"Creación cancelada."<<endl; return; }
             if(input.empty()){ cout<<"El codigo no puede estar vacío."<<endl; continue; }
             //if(codigoDuplicado(tienda, input)) { cout<<"Codigo ya existe. Ingrese otro."<<endl; continue; }
-            temp.id=stoi(input);
-            break;
-        }
-
+        }while(existe(&Proveedor::id,proveedor,*archivo,stoi(input)));
+        temp.id=stoi(input);
         // Nombre
         cout<<"Ingrese el nombre del proveedor (o 'CANCELAR' para cancelar): ";
         if(!getline(cin,input)) return;
