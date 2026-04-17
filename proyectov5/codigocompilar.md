@@ -1,0 +1,1 @@
+g++ proyectov5.cpp PRODUCTO.cpp PROVEEDOR.cpp CLIENTES.cpp TRANSACCION.cpp -o programa.exe
