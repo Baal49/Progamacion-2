@@ -3,7 +3,24 @@
 #include <iostream>
 #include <string>
 using namespace std;
-
+ int Cliente::getcedula(){
+    return cedula;
+ }
+ const char* Cliente::getnombre(){
+    return nombre;
+ }
+ const char* Cliente::getcorreo(){
+    return correo;
+ }
+ const char* Cliente::gettelefono(){
+    return telefono;
+ }
+ const char* Cliente::getdireccion(){
+    return dirreccion;
+ }
+ const char* Cliente::getfecharegistro(){
+    return fecharegitro;
+ }
  Cliente Cliente::buscarCliente(archivoHeader& cliente,fstream& archivoc,int cedula,string &nombre,string &direccion){
     Cliente c;
     if(cliente.cantidadRegistros<=0){ cout<<"Tienda no inicializada."<<endl; return c; }

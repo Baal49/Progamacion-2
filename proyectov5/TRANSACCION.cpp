@@ -20,7 +20,7 @@ void Transaccion::venta(archivoHeader& producto,archivoHeader transaccion,archiv
     cin>>cedu;
     c=c.buscarCliente(cliente,archivoc, cedu, nombre, direccion);
     
-    if(c.cedula==0){
+    if(c.getcedula()==0){
         cout<<"Cliente no encontrado. Intente de nuevo o Cree otro cliente";
             cout<<"Venta cancelada."<<endl;
             return;

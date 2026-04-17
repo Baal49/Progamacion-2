@@ -337,7 +337,7 @@ int main(){
                         {
                             string nombre, direccion;
                             Cliente c=c.buscarCliente(clientes,archivoclientes,id,nombre,direccion);
-                            if(c.cedula!=0){
+                            if(c.getcedula()!=0){
                                 cout<<"Cliente encontrado: "<<nombre<<" | Cedula: "<<id<<" | Direccion: "<<direccion<<"\n";
                             } else {
                                 cout<<"Cliente no encontrado."<<endl;
